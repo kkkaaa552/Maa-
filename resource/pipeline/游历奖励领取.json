@@ -1,0 +1,465 @@
+{
+    "$__mpe_config_新建Pipeline3": {
+        "$__mpe_code": {
+            "prefix": "",
+            "coordinateMode": "absolute-v1",
+            "lastSyncTime": 1795351564697,
+            "isModifiedExternally": false,
+            "isDeleted": false,
+            "filePath": "D:\\mixian\\my-maa\\resource\\base\\pipeline\\游历奖励领取.json",
+            "savedViewport": {
+                "x": -458,
+                "y": -124,
+                "zoom": 0.61
+            },
+            "filename": "新建Pipeline3",
+            "version": "v2.1.3"
+        }
+    },
+    "任务": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    20,
+                    292,
+                    96,
+                    64
+                ],
+                "template": [
+                    "游历任务选中.png"
+                ],
+                "threshold": 0.8
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": true
+            }
+        },
+        "post_delay": 1000,
+        "timeout": 8000,
+        "next": [
+            "切回本周"
+        ],
+        "on_error": [
+            "切回本周"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": 320,
+                "y": 0
+            }
+        }
+    },
+    "切回本周": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    140,
+                    190,
+                    190,
+                    72
+                ],
+                "template": [
+                    "游历本周页签.png"
+                ],
+                "threshold": 0.95
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": true
+            }
+        },
+        "post_delay": 900,
+        "timeout": 4000,
+        "next": [
+            "游历全部领取"
+        ],
+        "on_error": [
+            "游历全部领取"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": 640,
+                "y": 16
+            }
+        }
+    },
+    "奖励全部领取": {
+        "max_hit": 8,
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    698,
+                    642,
+                    176,
+                    64
+                ],
+                "template": [
+                    "游历奖励全部领取.png"
+                ],
+                "threshold": 0.8
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": true
+            }
+        },
+        "post_delay": 1200,
+        "timeout": 8000,
+        "next": [
+            "奖励空白关闭"
+        ],
+        "on_error": [
+            "游历返回"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": 1280,
+                "y": 909
+            }
+        }
+    },
+    "奖励空白关闭": {
+        "recognition": {
+            "type": "DirectHit",
+            "param": {
+                "roi": [
+                    0,
+                    0,
+                    0,
+                    0
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    1216,
+                    281,
+                    38,
+                    228
+                ]
+            }
+        },
+        "post_delay": 1600,
+        "timeout": 6000,
+        "next": [
+            "奖励全部领取",
+            "游历返回"
+        ],
+        "on_error": [
+            "游历返回"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": 1600,
+                "y": 1038
+            }
+        }
+    },
+    "游历全部领取": {
+        "max_hit": 8,
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    698,
+                    642,
+                    176,
+                    64
+                ],
+                "template": [
+                    "游历奖励全部领取.png"
+                ],
+                "threshold": 0.8
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": true
+            }
+        },
+        "post_delay": 1200,
+        "timeout": 8000,
+        "next": [
+            "游历.空白处点击"
+        ],
+        "on_error": [
+            "游历挑战任务"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": 960,
+                "y": 393
+            }
+        }
+    },
+    "游历奖励进入": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    758,
+                    646,
+                    94,
+                    55
+                ],
+                "template": [
+                    "游历.png"
+                ],
+                "threshold": 0.8
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": true
+            }
+        },
+        "post_delay": 1200,
+        "timeout": 8000,
+        "next": [
+            "任务"
+        ],
+        "on_error": [
+            "任务"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": 0,
+                "y": 0
+            }
+        }
+    },
+    "游历挑战任务": {
+        "max_hit": 2,
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    326,
+                    198,
+                    172,
+                    56
+                ],
+                "template": [
+                    "游历挑战.png"
+                ],
+                "threshold": 0.8
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": true
+            }
+        },
+        "post_delay": 1200,
+        "timeout": 8000,
+        "next": [
+            "游历挑战全部领取",
+            "游历返回"
+        ],
+        "on_error": [
+            "游历挑战全部领取",
+            "游历返回"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": 1280,
+                "y": 353
+            }
+        }
+    },
+    "游历挑战全部领取": {
+        "max_hit": 8,
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    698,
+                    642,
+                    176,
+                    64
+                ],
+                "template": [
+                    "游历奖励全部领取.png"
+                ],
+                "threshold": 0.8
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": true
+            }
+        },
+        "post_delay": 1200,
+        "timeout": 8000,
+        "next": [
+            "游历挑战空白关闭"
+        ],
+        "on_error": [
+            "游历返回"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": 1592,
+                "y": 404
+            }
+        }
+    },
+    "游历挑战空白关闭": {
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    1216,
+                    281,
+                    38,
+                    228
+                ]
+            }
+        },
+        "post_delay": 1600,
+        "timeout": 6000,
+        "next": [
+            "游历挑战全部领取",
+            "点击奖励"
+        ],
+        "on_error": [
+            "点击奖励",
+            "游历返回"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": 640,
+                "y": 950
+            }
+        }
+    },
+    "游历返回": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    17,
+                    11,
+                    155,
+                    48
+                ],
+                "template": [
+                    "返回.png"
+                ],
+                "threshold": 0.85
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    17,
+                    11,
+                    155,
+                    48
+                ]
+            }
+        },
+        "post_delay": 1200,
+        "timeout": 5000,
+        "$__mpe_code": {
+            "position": {
+                "x": 1920,
+                "y": 617
+            }
+        }
+    },
+    "点击奖励": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    10,
+                    118,
+                    120,
+                    96
+                ],
+                "template": [
+                    "游历奖励选中.png"
+                ],
+                "threshold": 0.85
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": true
+            }
+        },
+        "post_delay": 1200,
+        "timeout": 5000,
+        "next": [
+            "奖励全部领取"
+        ],
+        "on_error": [
+            "奖励全部领取"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": 960,
+                "y": 917
+            }
+        }
+    },
+    "游历.空白处点击": {
+        "recognition": {
+            "type": "DirectHit",
+            "param": {
+                "roi": [
+                    0,
+                    0,
+                    0,
+                    0
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    1216,
+                    281,
+                    38,
+                    228
+                ]
+            }
+        },
+        "post_delay": 1600,
+        "timeout": 6000,
+        "next": [
+            "游历全部领取",
+            "游历挑战任务"
+        ],
+        "on_error": [
+            "游历挑战全部领取",
+            "游历返回"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": 640,
+                "y": 505
+            }
+        }
+    }
+}

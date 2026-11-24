@@ -1,0 +1,1117 @@
+{
+    "interface_version": 2,
+    "name": "mihua",
+    "label": "物华弥新小助手",
+    "title": "物华弥新 MAA",
+    "icon": "resource/image/logo.png",
+    "version": "0.1.0",
+    "license": "MIT",
+    "description": "物华弥新（`com.cipaishe.laigu`）的 MaaFramework 项目。\n\n- 画布按 720p 构建（`display_short_side: 720`），模板图取自 1280×720 实机截图，roi 与模板一一对应。\n- 任务分三组：`日常` 只做导航与识别，`派遣公司` 三条链路会改动派遣阵容、制造类还会消耗游戏内材料，`通用` 是器者征集、仓库这类独立动作。\n- 抽卡、招集、购买活力、花灰珀或券类道具，一律不在任何任务、选项或预设里。\n- 截至 0.1.0，全部节点只做过静态校验（模板齐备、引用无悬空、roi 装得下模板），尚未在实机跑过整条链路。",
+    "welcome": [
+        "当前为物华弥新MAA的测试版本"
+    ],
+    "agent": {
+        "child_exec": ".venv/Scripts/python.exe",
+        "child_args": [
+            "./agent/warehouse_agent.py"
+        ]
+    },
+    "controller": [
+        {
+            "name": "安卓端",
+            "label": "模拟器",
+            "type": "Adb",
+            "display_short_side": 720,
+            "description": "MuMu 12 模拟器，`adb connect 127.0.0.1:16384`，`wm size` 1280×720，与 720p 画布 1:1。模板与 roi 都在这套分辨率下量取。"
+        },
+        {
+            "name": "桌面端",
+            "label": "PC 客户端",
+            "type": "Win32",
+            "win32": {
+                "class_regex": ".*",
+                "window_regex": "物华弥新|来古弥新",
+                "screencap": "PrintWindow",
+                "mouse": "SendMessageWithCursorPos",
+                "keyboard": "SendMessage"
+            },
+            "description": "PC 客户端窗口。这套配置还没在实机上验证过，只作为占位保留；插件按窗口标题匹配，截图走 PrintWindow，输入走 SendMessage 系（不抢焦点）。"
+        }
+    ],
+    "resource": [
+        {
+            "name": "官服",
+            "label": "官服",
+            "path": [
+                "./resource"
+            ],
+            "controller": [
+                "安卓端",
+                "桌面端"
+            ],
+            "description": "`resource` 下一套 pipeline + 模板图，两套控制器共用。"
+        }
+    ],
+    "group": [
+        {
+            "name": "日常",
+            "label": "日常（不动资源）",
+            "description": "只做导航与识别：开面板、认页签、回大厅。不点任何玩法入口，不点领取以外的按钮。",
+            "default_expand": true
+        },
+        {
+            "name": "派遣公司",
+            "label": "派遣公司",
+            "description": "三条派遣链路。入驻会按好感度换下已满的器者并补位；道具制造与社会指南制造还会消耗游戏内制造材料。",
+            "default_expand": true
+        },
+        {
+            "name": "通用",
+            "label": "通用工具",
+            "description": "与具体玩法无关的辅助动作，常被预设排在第一位。",
+            "default_expand": true
+        },
+        {
+            "name": "作战",
+            "label": "作战（会消耗活力值）",
+            "description": "均衡材料刷取：按仓库识别结果自动决定刷冬谷币 / 教材 / 核定牌。默认活力不足即停止，不购买、不等待；只有显式选「购买活力值」才会点购买入口。抽卡、征集、商亭一律不在本组内。",
+            "default_expand": true
+        },
+        {
+            "name": "迷踪盘",
+            "label": "迷踪盘",
+            "description": "茶室里的转动盘小游戏。读大盘棋子 + 左侧小盘解密点，BFS 求最短点击序列，每步截图复核。只做导航与点击格点，不消耗活力、货币或任何材料。",
+            "default_expand": true
+        }
+    ],
+    "task": [
+        {
+            "name": "Mail",
+            "label": "邮件领取",
+            "controller": [
+                "安卓端"
+            ],
+            "entry": "Mail",
+            "default_check": true,
+            "group": [
+                "日常"
+            ],
+            "description": "领取邮件"
+        },
+        {
+            "name": "Dispatch.InRoom",
+            "label": "派遣公司·入驻器者",
+            "controller": [
+                "安卓端"
+            ],
+            "entry": "派遣.派遣公司进入入口",
+            "default_check": false,
+            "group": [
+                "派遣公司"
+            ]
+        },
+        {
+            "name": "Dispatch.Craft",
+            "label": "派遣公司·道具制造",
+            "controller": [
+                "安卓端"
+            ],
+            "entry": "派遣.制造进入入口",
+            "default_check": false,
+            "group": [
+                "派遣公司"
+            ],
+            "option": [
+                "道具种类"
+            ]
+        },
+        {
+            "name": "Dispatch.Guide",
+            "label": "派遣公司·社会指南制造",
+            "controller": [
+                "安卓端"
+            ],
+            "entry": "派遣.指南进入入口",
+            "default_check": false,
+            "group": [
+                "派遣公司"
+            ],
+            "option": [
+                "指南种类"
+            ]
+        },
+        {
+            "name": "器者征集",
+            "label": "器者征集",
+            "controller": [
+                "安卓端"
+            ],
+            "entry": "征集.进入入口",
+            "default_check": false,
+            "group": [
+                "通用"
+            ],
+            "description": "进器者征集 → 选征集次数 → 确认 → 跳过动画 → 返回大厅。"
+        },
+        {
+            "name": "奖励领取",
+            "label": "奖励领取",
+            "controller": [
+                "安卓端"
+            ],
+            "entry": "奖励.领取入口",
+            "default_check": false,
+            "group": [
+                "日常"
+            ],
+            "description": "领取日常/周常奖励"
+        },
+        {
+            "name": "仓库识别",
+            "label": "仓库识别",
+            "controller": [
+                "安卓端"
+            ],
+            "entry": "仓库进入",
+            "default_check": false,
+            "group": [
+                "通用"
+            ],
+            "description": "./report/仓库快照.md"
+        },
+        {
+            "name": "游历奖励领取",
+            "label": "游历奖励领取",
+            "controller": [
+                "安卓端"
+            ],
+            "entry": "游历奖励进入",
+            "default_check": false,
+            "group": [
+                "日常"
+            ],
+            "description": "主页 → 游历 → 任务 → 全部领取 → 点空白处 → 反复直到按钮消失 → 挑战 → 全部领取 → 点空白处 → 反复直到按钮消失 → 返回大厅。只点领取，不买等级、不解锁瑞牒。"
+        },
+        {
+            "name": "作战刷取",
+            "label": "作战刷取（均衡材料）",
+            "controller": [
+                "安卓端"
+            ],
+            "entry": "作战.进入入口",
+            "default_check": false,
+            "group": [
+                "作战"
+            ],
+            "option": [
+                "刷取方式",
+                "关卡类别",
+                "关卡等级",
+                "核定牌职业",
+                "刷取轮数",
+                "活力值用尽怎么办",
+                "购买活力值次数"
+            ],
+            "description": "主页 → 演训 → 开始训练 → 读仓库识别结果决定刷哪个材料（冬谷币 < 270w → 深度社会学 < 587 → 核定牌 20/30/30/35/85）→ 选类别/等级/职业 → 速通 → 调整 → 一键调整 → 确定 → 最大 → 确认 → 完成 → 返回，按「刷取轮数」循环。默认活力不足即停止，不购买任何活力值；抽卡、征集、商亭购物不在本任务内。模板与 roi 为占位，需按实机截图填写。"
+        },
+        {
+            "name": "迷踪盘",
+            "label": "迷踪盘·求解一局",
+            "controller": [
+                "安卓端"
+            ],
+            "entry": "迷踪盘",
+            "default_check": false,
+            "group": [
+                "迷踪盘"
+            ],
+            "option": [
+                "迷踪盘关卡"
+            ]
+        }
+    ],
+    "option": {
+        "指南种类": {
+            "type": "select",
+            "label": "社会指南选择",
+            "description": "只在「派遣公司·社会指南制造」里生效：覆盖 `派遣.指南分流` 的 `next`，决定最后点哪一本指南。",
+            "default_case": "进阶",
+            "cases": [
+                {
+                    "name": "初级",
+                    "label": "初级社会指南",
+                    "pipeline_override": {
+                        "派遣.指南分流": {
+                            "next": [
+                                "派遣.造初级指南"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "中级",
+                    "label": "中级社会指南",
+                    "pipeline_override": {
+                        "派遣.指南分流": {
+                            "next": [
+                                "派遣.造中级指南"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "高级",
+                    "label": "高级社会指南",
+                    "pipeline_override": {
+                        "派遣.指南分流": {
+                            "next": [
+                                "派遣.造高级指南"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "进阶",
+                    "label": "进阶社会学指南",
+                    "pipeline_override": {
+                        "派遣.指南分流": {
+                            "next": [
+                                "派遣.造进阶指南"
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        "道具种类": {
+            "type": "select",
+            "label": "道具选择",
+            "description": "只在「派遣公司·道具制造」里生效：覆盖 `派遣.道具分流` 的 `next`。顺序与实机申请列表从上到下一致；`Ⅰ/Ⅱ型拟态钢材` 与 `资质证明Ⅰ/Ⅱ/Ⅲ`、`高级制造申请` 不在首屏，靠列表滚动节点到位后再点。",
+            "default_case": "随机凌级装备",
+            "cases": [
+                {
+                    "name": "随机凌级装备",
+                    "pipeline_override": {
+                        "派遣.道具分流": {
+                            "next": [
+                                "派遣.造随机凌级装备"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "饰铜石墨条",
+                    "pipeline_override": {
+                        "派遣.道具分流": {
+                            "next": [
+                                "派遣.造饰铜石墨条"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "錾银石墨条",
+                    "pipeline_override": {
+                        "派遣.道具分流": {
+                            "next": [
+                                "派遣.造錾银石墨条"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "灰珀碎片涂料",
+                    "pipeline_override": {
+                        "派遣.道具分流": {
+                            "next": [
+                                "派遣.造灰珀碎片涂料"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Ⅰ型拟态钢材",
+                    "pipeline_override": {
+                        "派遣.道具分流": {
+                            "next": [
+                                "派遣.滚一格_Ⅰ型拟态钢材"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Ⅱ型拟态钢材",
+                    "pipeline_override": {
+                        "派遣.道具分流": {
+                            "next": [
+                                "派遣.滚一格_Ⅱ型拟态钢材"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "资质证明Ⅰ",
+                    "pipeline_override": {
+                        "派遣.道具分流": {
+                            "next": [
+                                "派遣.夹底_资质证明Ⅰ"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "资质证明Ⅱ",
+                    "pipeline_override": {
+                        "派遣.道具分流": {
+                            "next": [
+                                "派遣.夹底_资质证明Ⅱ"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "资质证明Ⅲ",
+                    "pipeline_override": {
+                        "派遣.道具分流": {
+                            "next": [
+                                "派遣.夹底_资质证明Ⅲ"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "高级制造申请",
+                    "pipeline_override": {
+                        "派遣.道具分流": {
+                            "next": [
+                                "派遣.夹底_高级制造申请"
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        "活力值用尽怎么办": {
+            "type": "select",
+            "label": "活力值用尽怎么办",
+            "description": "刷到一半活力不足时的动作。默认「直接停止」——不花任何资源。选「购买活力值」才会点购买入口（消耗灰珀/道具）；选「等待恢复」原地等 60 秒重试，最多 5 次，不花钱。",
+            "default_case": "直接停止",
+            "cases": [
+                {
+                    "name": "直接停止",
+                    "label": "直接停止（不花资源）",
+                    "description": "识别到活力不足提示就结束本任务并回大厅。",
+                    "pipeline_override": {
+                        "作战.活力决策": {
+                            "next": [
+                                "作战.停止"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "等待恢复",
+                    "label": "等待恢复（不花资源）",
+                    "description": "原地等 60 秒再试一次速通，最多 5 次。",
+                    "pipeline_override": {
+                        "作战.活力决策": {
+                            "next": [
+                                "作战.等待恢复"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "购买活力值",
+                    "label": "⚠️ 购买活力值（消耗资源）",
+                    "description": "点购买入口并确认，最多重试 3 次，买不到就停止。",
+                    "pipeline_override": {
+                        "作战.活力决策": {
+                            "next": [
+                                "作战.购买活力"
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        "刷取方式": {
+            "type": "select",
+            "label": "刷取方式",
+            "description": "「均衡材料刷取」= 读 data/warehouse 下的仓库识别结果，按 冬谷币 270w → 深度社会学 587 → 核定牌 20/30/30/35/85 的顺序自动决定刷什么；「手动指定」= 直接用下面「关卡类别」选的那个，不看仓库。",
+            "default_case": "均衡材料刷取",
+            "cases": [
+                {
+                    "name": "均衡材料刷取",
+                    "label": "均衡材料刷取（读仓库自动决定）",
+                    "description": "仓库数据来自「仓库识别」任务；没跑过仓库识别就只能退回手动。",
+                    "pipeline_override": {
+                        "作战.均衡决策": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "op": "decide",
+                                        "mode": "balance",
+                                        "level": "",
+                                        "profession": ""
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "手动指定",
+                    "label": "手动指定（用下面的类别/等级/职业）",
+                    "description": "跳过仓库判定，直接刷「关卡类别」里选的那一类。",
+                    "pipeline_override": {
+                        "作战.均衡决策": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "op": "decide",
+                                        "mode": "manual",
+                                        "level": "",
+                                        "profession": ""
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        "关卡类别": {
+            "type": "select",
+            "label": "关卡类别",
+            "description": "手动模式下的材料类别。「均衡材料刷取」模式会覆盖本项。",
+            "default_case": "冬谷币",
+            "cases": [
+                {
+                    "name": "冬谷币",
+                    "label": "冬谷币",
+                    "pipeline_override": {
+                        "作战.选类别": {
+                            "recognition": {
+                                "param": {
+                                    "template": [
+                                        "作战.培养_冬谷币.png"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "教材",
+                    "label": "教材",
+                    "pipeline_override": {
+                        "作战.选类别": {
+                            "recognition": {
+                                "param": {
+                                    "template": [
+                                        "作战.培养_教材.png"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "核定牌",
+                    "label": "核定牌",
+                    "pipeline_override": {
+                        "作战.选类别": {
+                            "recognition": {
+                                "param": {
+                                    "template": [
+                                        "作战.考核.png"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        "关卡等级": {
+            "type": "select",
+            "label": "关卡等级",
+            "description": "子→丑→寅→卯→辰 五级，辰最高。默认「最高（辰）」；均衡模式在刷核定牌时会按缺口自动选级，覆盖本项。",
+            "default_case": "最高（辰）",
+            "cases": [
+                {
+                    "name": "最高（辰）",
+                    "label": "最高（辰）",
+                    "pipeline_override": {
+                        "作战.选等级": {
+                            "recognition": {
+                                "param": {
+                                    "template": [
+                                        "作战.等级_辰.png"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "子（I）",
+                    "label": "子 级（I）",
+                    "pipeline_override": {
+                        "作战.选等级": {
+                            "recognition": {
+                                "param": {
+                                    "template": [
+                                        "作战.等级_子.png"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "丑（II）",
+                    "label": "丑 级（II）",
+                    "pipeline_override": {
+                        "作战.选等级": {
+                            "recognition": {
+                                "param": {
+                                    "template": [
+                                        "作战.等级_丑.png"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "寅（III）",
+                    "label": "寅 级（III）",
+                    "pipeline_override": {
+                        "作战.选等级": {
+                            "recognition": {
+                                "param": {
+                                    "template": [
+                                        "作战.等级_寅.png"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "卯（IV）",
+                    "label": "卯 级（IV）",
+                    "pipeline_override": {
+                        "作战.选等级": {
+                            "recognition": {
+                                "param": {
+                                    "template": [
+                                        "作战.等级_卯.png"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        "核定牌职业": {
+            "type": "select",
+            "label": "核定牌职业",
+            "description": "只有刷核定牌才有这一层。均衡模式会在该等级内自动挑「数量最少的职业」，覆盖本项；手动模式下按这里选。",
+            "default_case": "远击",
+            "cases": [
+                {
+                    "name": "远击",
+                    "label": "远击",
+                    "pipeline_override": {
+                        "作战.选职业": {
+                            "recognition": {
+                                "type": "TemplateMatch",
+                                "param": {
+                                    "roi": [
+                                        0,
+                                        0,
+                                        1280,
+                                        720
+                                    ],
+                                    "template": [
+                                        "作战.职业_远击.png"
+                                    ],
+                                    "threshold": 0.85
+                                }
+                            },
+                            "action": {
+                                "type": "Click",
+                                "param": {
+                                    "target": true
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "轻锐",
+                    "label": "轻锐",
+                    "pipeline_override": {
+                        "作战.选职业": {
+                            "recognition": {
+                                "type": "TemplateMatch",
+                                "param": {
+                                    "roi": [
+                                        0,
+                                        0,
+                                        1280,
+                                        720
+                                    ],
+                                    "template": [
+                                        "作战.职业_轻锐.png"
+                                    ],
+                                    "threshold": 0.85
+                                }
+                            },
+                            "action": {
+                                "type": "Click",
+                                "param": {
+                                    "target": true
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "宿卫",
+                    "label": "宿卫",
+                    "pipeline_override": {
+                        "作战.选职业": {
+                            "recognition": {
+                                "type": "TemplateMatch",
+                                "param": {
+                                    "roi": [
+                                        0,
+                                        0,
+                                        1280,
+                                        720
+                                    ],
+                                    "template": [
+                                        "作战.职业_宿卫.png"
+                                    ],
+                                    "threshold": 0.85
+                                }
+                            },
+                            "action": {
+                                "type": "Click",
+                                "param": {
+                                    "target": true
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "构术",
+                    "label": "构术",
+                    "pipeline_override": {
+                        "作战.选职业": {
+                            "recognition": {
+                                "type": "TemplateMatch",
+                                "param": {
+                                    "roi": [
+                                        0,
+                                        0,
+                                        1280,
+                                        720
+                                    ],
+                                    "template": [
+                                        "作战.职业_构术.png"
+                                    ],
+                                    "threshold": 0.85
+                                }
+                            },
+                            "action": {
+                                "type": "Click",
+                                "param": {
+                                    "target": true
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "战略",
+                    "label": "战略",
+                    "pipeline_override": {
+                        "作战.选职业": {
+                            "recognition": {
+                                "type": "TemplateMatch",
+                                "param": {
+                                    "roi": [
+                                        0,
+                                        0,
+                                        1280,
+                                        720
+                                    ],
+                                    "template": [
+                                        "作战.职业_战略.png"
+                                    ],
+                                    "threshold": 0.85
+                                }
+                            },
+                            "action": {
+                                "type": "Click",
+                                "param": {
+                                    "target": true
+                                }
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        "刷取轮数": {
+            "type": "select",
+            "label": "刷取轮数",
+            "description": "本次任务最多做几轮（一轮 = 选材料 → 速通到完成 → 返回）。均衡模式下每轮会重新判一次缺口，所以多轮会依次覆盖不同材料。实现在 `作战.本轮计数` 的 max_hit。",
+            "default_case": "5 轮",
+            "cases": [
+                {
+                    "name": "1 轮",
+                    "label": "1 轮",
+                    "pipeline_override": {
+                        "作战.本轮计数": {
+                            "max_hit": 1
+                        }
+                    }
+                },
+                {
+                    "name": "3 轮",
+                    "label": "3 轮",
+                    "pipeline_override": {
+                        "作战.本轮计数": {
+                            "max_hit": 3
+                        }
+                    }
+                },
+                {
+                    "name": "5 轮",
+                    "label": "5 轮",
+                    "pipeline_override": {
+                        "作战.本轮计数": {
+                            "max_hit": 5
+                        }
+                    }
+                },
+                {
+                    "name": "10 轮",
+                    "label": "10 轮",
+                    "pipeline_override": {
+                        "作战.本轮计数": {
+                            "max_hit": 10
+                        }
+                    }
+                },
+                {
+                    "name": "20 轮",
+                    "label": "20 轮",
+                    "pipeline_override": {
+                        "作战.本轮计数": {
+                            "max_hit": 20
+                        }
+                    }
+                }
+            ]
+        },
+        "购买活力值次数": {
+            "type": "select",
+            "label": "购买活力值次数",
+            "description": "⚠️ 只在「活力值用尽怎么办」选了「购买活力值」时才有意义。弹窗打开时次数已经是 1，所以买 N 次 = 点 (N-1) 下「+」；买 1 次一下都不点，直接确认。",
+            "default_case": "买 1 次",
+            "cases": [
+                {
+                    "name": "买 1 次",
+                    "label": "买 1 次（不动 +，弹窗默认就是 1）",
+                    "description": "弹窗打开时次数已经是 1，直接点确认。",
+                    "pipeline_override": {
+                        "作战.购买次数": {
+                            "next": [
+                                "作战.购买确认"
+                            ],
+                            "max_hit": 1
+                        }
+                    }
+                },
+                {
+                    "name": "买 2 次",
+                    "label": "买 2 次（点 1 下 +）",
+                    "description": "点 1 下「+」把 1 变 2，再确认。",
+                    "pipeline_override": {
+                        "作战.购买次数": {
+                            "next": [
+                                "作战.购买次数",
+                                "作战.购买确认"
+                            ],
+                            "max_hit": 1
+                        }
+                    }
+                },
+                {
+                    "name": "买 3 次",
+                    "label": "买 3 次（点 2 下 +）",
+                    "description": "点 2 下「+」把 1 变 3，再确认。",
+                    "pipeline_override": {
+                        "作战.购买次数": {
+                            "next": [
+                                "作战.购买次数",
+                                "作战.购买确认"
+                            ],
+                            "max_hit": 2
+                        }
+                    }
+                },
+                {
+                    "name": "买 5 次",
+                    "label": "买 5 次（点 4 下 +）",
+                    "description": "点 4 下「+」把 1 变 5，再确认。",
+                    "pipeline_override": {
+                        "作战.购买次数": {
+                            "next": [
+                                "作战.购买次数",
+                                "作战.购买确认"
+                            ],
+                            "max_hit": 4
+                        }
+                    }
+                }
+            ]
+        },
+        "迷踪盘关卡": {
+            "type": "select",
+            "label": "迷踪盘关卡",
+            "description": "只在「迷踪盘·求解一局」里生效：覆盖 迷踪盘.选关 节点的 target，决定点哪一张关卡卡片。体验关卡无奖励、可重复；主线关卡首次通关有奖励。",
+            "default_case": "体验关卡",
+            "cases": [
+                {
+                    "name": "体验关卡",
+                    "label": "体验关卡",
+                    "pipeline_override": {
+                        "迷踪盘.选关": {
+                            "target": [
+                                231,
+                                270
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "第1关",
+                    "label": "第1关",
+                    "pipeline_override": {
+                        "迷踪盘.选关": {
+                            "target": [
+                                368,
+                                270
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "第2关",
+                    "label": "第2关",
+                    "pipeline_override": {
+                        "迷踪盘.选关": {
+                            "target": [
+                                506,
+                                270
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "第3关",
+                    "label": "第3关",
+                    "pipeline_override": {
+                        "迷踪盘.选关": {
+                            "target": [
+                                644,
+                                270
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "第4关",
+                    "label": "第4关",
+                    "pipeline_override": {
+                        "迷踪盘.选关": {
+                            "target": [
+                                234,
+                                410
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "第5关",
+                    "label": "第5关",
+                    "pipeline_override": {
+                        "迷踪盘.选关": {
+                            "target": [
+                                371,
+                                410
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "第6关",
+                    "label": "第6关",
+                    "pipeline_override": {
+                        "迷踪盘.选关": {
+                            "target": [
+                                509,
+                                410
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "第7关",
+                    "label": "第7关",
+                    "pipeline_override": {
+                        "迷踪盘.选关": {
+                            "target": [
+                                646,
+                                410
+                            ]
+                        }
+                    }
+                }
+            ]
+        }
+    },
+    "preset": [
+        {
+            "name": "邮件领取",
+            "label": "邮件领取",
+            "description": "只做一件事：进邮件点「全部领取」，然后回大厅。不领日报、不进派遣。",
+            "task": [
+                {
+                    "name": "Mail",
+                    "enabled": true
+                }
+            ]
+        },
+        {
+            "name": "派遣：入驻换人",
+            "label": "派遣：入驻换人",
+            "description": "回大厅 → 进派遣公司，领感应与活力、按好感度换下已满器者并补位。不制造、不消耗材料。",
+            "task": [
+                {
+                    "name": "Dispatch.InRoom",
+                    "enabled": true
+                }
+            ]
+        },
+        {
+            "name": "派遣：入驻 + 社会指南",
+            "label": "派遣：入驻 + 社会指南",
+            "description": "入驻换人之后造一本社会指南（默认进阶）。会消耗游戏内制造材料。",
+            "task": [
+                {
+                    "name": "Dispatch.InRoom",
+                    "enabled": true
+                },
+                {
+                    "name": "Dispatch.Guide",
+                    "enabled": true,
+                    "option": {
+                        "指南种类": "进阶"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "派遣：入驻 + 道具",
+            "label": "派遣：入驻 + 道具",
+            "description": "入驻换人之后造一件道具（默认随机凌级装备）。会消耗游戏内制造材料。",
+            "task": [
+                {
+                    "name": "Dispatch.InRoom",
+                    "enabled": true
+                },
+                {
+                    "name": "Dispatch.Craft",
+                    "enabled": true,
+                    "option": {
+                        "道具种类": "随机凌级装备"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "作战：单轮试跑",
+            "label": "作战：单轮试跑（不买活力）",
+            "description": "1 轮 + 活力不足直接停止 + 均衡判定。用来验证链路又不浪费活力。",
+            "task": [
+                {
+                    "name": "作战刷取",
+                    "enabled": true,
+                    "option": {
+                        "刷取轮数": "1 轮",
+                        "购买活力值次数": "买 1 次",
+                        "活力值用尽怎么办": "直接停止"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "作战：手动冬谷币 5 轮",
+            "label": "作战：手动刷冬谷币 5 轮",
+            "description": "跳过仓库判定，直接刷冬谷币最高级，5 轮，活力不足停止。",
+            "task": [
+                {
+                    "name": "作战刷取",
+                    "enabled": true,
+                    "option": {
+                        "刷取方式": "手动指定",
+                        "关卡类别": "冬谷币",
+                        "关卡等级": "最高（辰）",
+                        "刷取轮数": "5 轮",
+                        "购买活力值次数": "买 1 次",
+                        "活力值用尽怎么办": "直接停止"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "迷踪盘：体验关卡",
+            "label": "迷踪盘：体验关卡",
+            "description": "回大厅 → 派遣公司 → 茶室 → 迷踪盘 → 体验关卡 → 自动转动求解 → 完成后回大厅。体验关卡无奖励、可重复，不消耗任何资源。",
+            "task": [
+                {
+                    "name": "迷踪盘",
+                    "enabled": true,
+                    "option": {
+                        "迷踪盘关卡": "体验关卡"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "迷踪盘：第1关",
+            "label": "迷踪盘：第1关",
+            "description": "同上，只是选第1关（主线首次通关有奖励）。",
+            "task": [
+                {
+                    "name": "迷踪盘",
+                    "enabled": true,
+                    "option": {
+                        "迷踪盘关卡": "第1关"
+                    }
+                }
+            ]
+        }
+    ]
+}

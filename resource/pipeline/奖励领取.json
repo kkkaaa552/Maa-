@@ -1,0 +1,362 @@
+{
+    "$__mpe_config_奖励领取": {
+        "$__mpe_code": {
+            "prefix": "",
+            "coordinateMode": "absolute-v1",
+            "lastSyncTime": 1795244898118,
+            "isModifiedExternally": false,
+            "isDeleted": false,
+            "filePath": "D:\\mixian\\my-maa\\resource\\base\\pipeline\\奖励领取.json",
+            "savedViewport": {
+                "x": -1351,
+                "y": 341,
+                "zoom": 0.65
+            },
+            "filename": "奖励领取",
+            "version": "v2.1.3"
+        }
+    },
+    "奖励.切周常": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    0,
+                    250,
+                    280,
+                    220
+                ],
+                "template": "周常.png",
+                "threshold": 0.9
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": true
+            }
+        },
+        "post_delay": 1500,
+        "timeout": 8000,
+        "next": [
+            "奖励.周常就绪"
+        ],
+        "on_error": [
+            "奖励.返回"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": 1920,
+                "y": 17
+            }
+        }
+    },
+    "奖励.切日常": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    55,
+                    145,
+                    190,
+                    85
+                ],
+                "expected": "日常任务"
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": true
+            }
+        },
+        "post_delay": 1000,
+        "timeout": 6000,
+        "next": [
+            "奖励.日常就绪"
+        ],
+        "on_error": [
+            "奖励.返回"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": 640,
+                "y": -62
+            }
+        }
+    },
+    "奖励.周常奖励面板": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1120,
+                    255,
+                    130,
+                    210
+                ],
+                "expected": "点击空白处返回"
+            }
+        },
+        "pre_delay": 300,
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    110,
+                    180,
+                    40,
+                    40
+                ]
+            }
+        },
+        "post_delay": 800,
+        "timeout": 3000,
+        "next": [
+            "奖励.返回"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": 2880,
+                "y": 28
+            }
+        }
+    },
+    "奖励.周常就绪": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    0,
+                    0,
+                    330,
+                    80
+                ],
+                "expected": "周常"
+            }
+        },
+        "timeout": 8000,
+        "next": [
+            "奖励.周常领取"
+        ],
+        "on_error": [
+            "奖励.返回"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": 2240,
+                "y": 165
+            }
+        }
+    },
+    "奖励.周常领取": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    640,
+                    620,
+                    320,
+                    100
+                ],
+                "template": "领取奖励.png",
+                "threshold": 0.9
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": true
+            }
+        },
+        "post_delay": 1500,
+        "timeout": 8000,
+        "next": [
+            "奖励.周常奖励面板"
+        ],
+        "on_error": [
+            "奖励.返回"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": 2560,
+                "y": 41
+            }
+        }
+    },
+    "奖励.打开任务面板": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    1100,
+                    620,
+                    180,
+                    100
+                ],
+                "template": "任务.png",
+                "threshold": 0.85
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": true
+            }
+        },
+        "post_delay": 1500,
+        "timeout": 8000,
+        "next": [
+            "奖励.切日常"
+        ],
+        "on_error": [
+            "奖励.返回"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": 320,
+                "y": -220
+            }
+        }
+    },
+    "奖励.日常奖励面板": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1120,
+                    255,
+                    130,
+                    210
+                ],
+                "expected": "点击空白处返回"
+            }
+        },
+        "pre_delay": 300,
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    110,
+                    180,
+                    40,
+                    40
+                ]
+            }
+        },
+        "post_delay": 800,
+        "timeout": 3000,
+        "next": [
+            "奖励.切周常"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": 1600,
+                "y": 249
+            }
+        }
+    },
+    "奖励.日常就绪": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    0,
+                    0,
+                    330,
+                    80
+                ],
+                "expected": "日常"
+            }
+        },
+        "timeout": 8000,
+        "next": [
+            "奖励.日常领取"
+        ],
+        "on_error": [
+            "奖励.切周常"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": 960,
+                "y": 30
+            }
+        }
+    },
+    "奖励.日常领取": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    640,
+                    620,
+                    320,
+                    100
+                ],
+                "template": "领取奖励.png",
+                "threshold": 0.9
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": true
+            }
+        },
+        "post_delay": 1500,
+        "timeout": 8000,
+        "next": [
+            "奖励.日常奖励面板"
+        ],
+        "on_error": [
+            "奖励.切周常"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": 1280,
+                "y": 138
+            }
+        }
+    },
+    "奖励.返回": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    0,
+                    0,
+                    220,
+                    120
+                ],
+                "template": "返回.png",
+                "threshold": 0.9
+            }
+        },
+        "pre_delay": 300,
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": true
+            }
+        },
+        "post_delay": 1500,
+        "timeout": 5000,
+        "$__mpe_code": {
+            "position": {
+                "x": 3200,
+                "y": -122
+            }
+        }
+    },
+    "奖励.领取入口": {
+        "next": [
+            "奖励.打开任务面板"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": 0,
+                "y": -73
+            }
+        }
+    }
+}

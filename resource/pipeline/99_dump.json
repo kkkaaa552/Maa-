@@ -1,0 +1,64 @@
+{
+    "$schema": "https://raw.githubusercontent.com/MaaXYZ/MaaFramework/main/schema/pipeline.schema.json",
+
+    "DumpPanelTitle": {
+        "recognition": "OCR",
+        "roi": [
+            20,
+            90,
+            230,
+            190
+        ],
+        "action": "DoNothing"
+    },
+
+    "DumpTopBar": {
+        "recognition": "OCR",
+        "roi": [
+            0,
+            0,
+            320,
+            80
+        ],
+        "action": "DoNothing"
+    },
+
+    "DumpFull": {
+        "recognition": "OCR",
+        "roi": [
+            0,
+            0,
+            1280,
+            720
+        ],
+        "threshold": 0.3,
+        "order_by": "Vertical",
+        "action": "DoNothing"
+    },
+
+    "DumpLeft": {
+        "recognition": "OCR",
+        "roi": [
+            0,
+            80,
+            400,
+            640
+        ],
+        "threshold": 0.3,
+        "order_by": "Vertical",
+        "action": "DoNothing"
+    },
+
+    "DumpRight": {
+        "recognition": "OCR",
+        "roi": [
+            400,
+            80,
+            880,
+            640
+        ],
+        "threshold": 0.3,
+        "order_by": "Vertical",
+        "action": "DoNothing"
+    }
+}

@@ -1,0 +1,84 @@
+# ---- Python ----
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+env/
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# ---- 嵌入式 Python 运行时（由 CI 生成，不进库）----
+# 本地开发用 .venv；python/ 是 tools/build.py 打包时才需要的东西，
+# 由 CI 的「下载嵌入式 Python」步骤现做，不要把 320 MB 提交进仓库。
+/python/
+
+# ---- 构建产物 ----
+/install/
+/dist/
+/build/
+*.zip
+!resource/**/*.zip
+_dl/
+
+# ---- MaaFramework / MFAAvalonia 运行期产物 ----
+/debug/
+/logs/
+/report/
+/config/debug/
+/config/instances/
+/config/*.bak*
+/backup/
+/temp/
+_buildtest/
+
+# 注意：config/config.json 与 config/maa_option.json 故意不忽略 ——
+# tools/build.py 要把它们当作「默认配置模板」打进发布包。
+# 如果你想在本机仓库里保留一份自己调过的版本，改用 config/local.json 之类另存。
+
+# appsettings.json 是 MFAAvalonia 的本机 UI 状态（活动实例 ID ba1545a0、
+# 定时器绑定、上次勾选的任务名）。发布包里不带它，MFAAvalonia 首次启动会自己生成；
+# 塞进仓库只会让别人的默认界面变成「派遣：入驻 + 道具」。
+/appsettings.json
+
+# maafw/ 是 main.py 手工调试模式才用的原生库（5.16.0-beta.2，88.6 MB）。
+# 通用 UI 走 runtimes/，agent 走 python/Lib/site-packages/maa/bin，
+# 发布包不需要它，仓库里也就不必跟踪——省 88.6 MB。
+/maafw/
+
+# ---- 运行时状态与用户数据 ----
+mastate.json
+
+# ---- 备份与临时件 ----
+*.bak
+*.bak-*
+*.bak.*
+*.orig
+*.orig-*
+*.preicon-*
+*.before-*
+_*.png
+_c_*.png
+_m_*.png
+_t_*.png
+_tpl_*.png
+
+# ---- 开发笔记（个人工作记录，与发布无关）----
+HANDOFF.md
+HANDOFF-*.md
+00-待做清单-*.md
+
+# ---- 编辑器 ----
+.vs/
+.idea/
+*.user
+*.suo
+*.swp
+.DS_Store
+Thumbs.db
+
+# ---- 保留 ----
+!.github/
+!.vscode/

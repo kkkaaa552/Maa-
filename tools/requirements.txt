@@ -1,0 +1,26 @@
+# 物华弥新 MAA — agent / tools 运行依赖
+#
+# 来源：从项目 .venv 实测导出（python -m pip list --format=freeze），
+# 版本号与 2026-11-24 当时本机 venv 逐条一致，不自行升级。
+#
+# 说明：
+#   - 这里只列「跑起来真的需要」的包。maafw-cli 及其拉来的 click / platformdirs
+#     是 MaaPipelineEditor 那条链的，agent 和 tools 一行都没 import，故意不收。
+#   - StrEnum 是 MaaFw 的硬依赖（pip show MaaFw 的 Requires 里有），必须留。
+#   - opencv-python 的 wheel 里带完整 GUI 后端（约 130 MB）；CI 里想省体积可换成
+#     opencv-python-headless，但要注意 numpy 上限不同（headless 4.12 要求 numpy<2.3）。
+
+numpy==2.5.5
+opencv-python==5.1.0.95
+pillow==13.0.0
+openpyxl==3.1.5
+jsonschema==4.26.0
+jsonschema-specifications==2025.9.1
+attrs==26.1.0
+referencing==0.37.0
+rpds-py==2026.9.1
+et_xmlfile==2.0.0
+
+MaaFw==5.16.1
+MaaAgentBinary==1.0.1
+StrEnum==0.5.0

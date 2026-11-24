@@ -1,0 +1,1310 @@
+{
+    "$__mpe_config_派遣公司·社会指南制造": {
+        "$__mpe_code": {
+            "prefix": "",
+            "coordinateMode": "absolute-v1",
+            "lastSyncTime": 1795325087865,
+            "isModifiedExternally": false,
+            "isDeleted": false,
+            "filePath": "D:\\mixian\\my-maa\\resource\\base\\pipeline\\派遣公司·社会指南制造.json",
+            "savedViewport": {
+                "x": -8954,
+                "y": -372,
+                "zoom": 1.13
+            },
+            "filename": "派遣公司·社会指南制造",
+            "version": "v2.1.3"
+        }
+    },
+    "博物易物机": {
+        "recognition": {
+            "type": "DirectHit",
+            "param": {
+                "roi": [
+                    186,
+                    71,
+                    65,
+                    43
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    186,
+                    71,
+                    65,
+                    43
+                ]
+            }
+        },
+        "next": [
+            "博物易物机购买"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": 7719,
+                "y": 661
+            }
+        }
+    },
+    "博物易物机购买": {
+        "recognition": {
+            "type": "DirectHit",
+            "param": {
+                "roi": [
+                    954,
+                    349,
+                    78,
+                    76
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    956,
+                    355,
+                    67,
+                    63
+                ]
+            }
+        },
+        "post_delay": 600,
+        "next": [
+            "点击空白处"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": 7984,
+                "y": 662
+            }
+        }
+    },
+    "派遣.二轮不补": {
+        "recognition": {
+            "type": "DirectHit",
+            "param": {
+                "roi": [
+                    0,
+                    0,
+                    0,
+                    0
+                ]
+            }
+        },
+        "timeout": 1000,
+        "next": [
+            "派遣.器者选择确定"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": 4160,
+                "y": 1676
+            }
+        }
+    },
+    "派遣.二轮余量一": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    375,
+                    672,
+                    190,
+                    31
+                ],
+                "expected": "1\\s*/\\s*[0-9]"
+            }
+        },
+        "timeout": 800,
+        "next": [
+            "派遣.二轮补两位A"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": 3840,
+                "y": 600
+            }
+        }
+    },
+    "派遣.二轮余量三": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    375,
+                    672,
+                    190,
+                    31
+                ],
+                "expected": "3\\s*/\\s*[0-9]"
+            }
+        },
+        "timeout": 800,
+        "next": [
+            "派遣.二轮不补"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": 3840,
+                "y": 1585
+            }
+        }
+    },
+    "派遣.二轮余量二": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    375,
+                    672,
+                    190,
+                    31
+                ],
+                "expected": "2\\s*/\\s*[0-9]"
+            }
+        },
+        "timeout": 800,
+        "next": [
+            "派遣.二轮补一位三"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": 3840,
+                "y": 948
+            }
+        }
+    },
+    "派遣.二轮余量零": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    375,
+                    672,
+                    190,
+                    31
+                ],
+                "expected": "0\\s*/\\s*[0-9]"
+            }
+        },
+        "timeout": 800,
+        "next": [
+            "派遣.二轮补三位A"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": 3840,
+                "y": 1296
+            }
+        }
+    },
+    "派遣.二轮取消一": {
+        "recognition": {
+            "type": "DirectHit",
+            "param": {
+                "roi": [
+                    385,
+                    79,
+                    106,
+                    223
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": true,
+                "target_offset": [
+                    -10,
+                    -17,
+                    21,
+                    35
+                ]
+            }
+        },
+        "post_delay": 800,
+        "timeout": 6000,
+        "next": [
+            "派遣.二轮好感度二",
+            "派遣.二轮未满二"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": 1920,
+                "y": 1744
+            }
+        }
+    },
+    "派遣.二轮取消三": {
+        "recognition": {
+            "type": "DirectHit",
+            "param": {
+                "roi": [
+                    537,
+                    107,
+                    74,
+                    122
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": true,
+                "target_offset": [
+                    -26,
+                    -45,
+                    53,
+                    135
+                ]
+            }
+        },
+        "post_delay": 800,
+        "timeout": 6000,
+        "next": [
+            "派遣.工作状态三",
+            "派遣.二轮不补"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": 3200,
+                "y": 1744
+            }
+        }
+    },
+    "派遣.二轮取消二": {
+        "recognition": {
+            "type": "DirectHit",
+            "param": {
+                "roi": [
+                    400,
+                    409,
+                    77,
+                    135
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": true,
+                "target_offset": [
+                    -24,
+                    -40,
+                    51,
+                    120
+                ]
+            }
+        },
+        "post_delay": 800,
+        "timeout": 6000,
+        "next": [
+            "派遣.二轮好感度三",
+            "派遣.二轮未满三"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": 2560,
+                "y": 1637
+            }
+        }
+    },
+    "派遣.二轮好感度一": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    375,
+                    62,
+                    127,
+                    258
+                ],
+                "expected": "2240\\s*/\\s*2240"
+            }
+        },
+        "timeout": 3000,
+        "next": [
+            "派遣.二轮取消一"
+        ],
+        "on_error": [
+            "派遣.二轮未满二"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": 1600,
+                "y": 1824
+            }
+        }
+    },
+    "派遣.二轮好感度三": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    511,
+                    62,
+                    127,
+                    257
+                ],
+                "expected": "2240\\s*/\\s*2240"
+            }
+        },
+        "timeout": 3000,
+        "next": [
+            "派遣.二轮取消三"
+        ],
+        "on_error": [
+            "派遣.器者选择确定"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": 2880,
+                "y": 1898
+            }
+        }
+    },
+    "派遣.二轮好感度二": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    376,
+                    369,
+                    128,
+                    255
+                ],
+                "expected": "2240\\s*/\\s*2240"
+            }
+        },
+        "timeout": 3000,
+        "next": [
+            "派遣.二轮取消二"
+        ],
+        "on_error": [
+            "派遣.二轮未满三"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": 2240,
+                "y": 1529
+            }
+        }
+    },
+    "派遣.二轮未满一": {
+        "recognition": {
+            "type": "DirectHit",
+            "param": {
+                "roi": [
+                    375,
+                    62,
+                    127,
+                    258
+                ]
+            }
+        },
+        "timeout": 1000,
+        "next": [
+            "派遣.二轮好感度二",
+            "派遣.二轮未满二"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": 1920,
+                "y": 1408
+            }
+        }
+    },
+    "派遣.二轮未满三": {
+        "recognition": {
+            "type": "DirectHit",
+            "param": {
+                "roi": [
+                    511,
+                    62,
+                    127,
+                    257
+                ]
+            }
+        },
+        "timeout": 1000,
+        "next": [
+            "派遣.工作状态三",
+            "派遣.二轮不补"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": 2880,
+                "y": 1562
+            }
+        }
+    },
+    "派遣.二轮未满二": {
+        "recognition": {
+            "type": "DirectHit",
+            "param": {
+                "roi": [
+                    376,
+                    369,
+                    128,
+                    255
+                ]
+            }
+        },
+        "timeout": 1000,
+        "next": [
+            "派遣.二轮好感度三",
+            "派遣.二轮未满三"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": 2240,
+                "y": 1915
+            }
+        }
+    },
+    "派遣.二轮补一位三": {
+        "recognition": {
+            "type": "DirectHit",
+            "param": {
+                "roi": [
+                    537,
+                    107,
+                    74,
+                    122
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": true,
+                "target_offset": [
+                    -26,
+                    -45,
+                    53,
+                    135
+                ]
+            }
+        },
+        "post_delay": 900,
+        "timeout": 6000,
+        "next": [
+            "派遣.器者选择确定"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": 4800,
+                "y": 850
+            }
+        }
+    },
+    "派遣.二轮补三位A": {
+        "recognition": {
+            "type": "DirectHit",
+            "param": {
+                "roi": [
+                    385,
+                    79,
+                    106,
+                    223
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": true,
+                "target_offset": [
+                    -10,
+                    -17,
+                    21,
+                    35
+                ]
+            }
+        },
+        "post_delay": 900,
+        "timeout": 6000,
+        "next": [
+            "派遣.二轮补三位B"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": 4160,
+                "y": 1263
+            }
+        }
+    },
+    "派遣.二轮补三位B": {
+        "recognition": {
+            "type": "DirectHit",
+            "param": {
+                "roi": [
+                    400,
+                    409,
+                    77,
+                    135
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": true,
+                "target_offset": [
+                    -24,
+                    -40,
+                    51,
+                    120
+                ]
+            }
+        },
+        "post_delay": 900,
+        "timeout": 6000,
+        "next": [
+            "派遣.二轮补三位C"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": 4480,
+                "y": 1263
+            }
+        }
+    },
+    "派遣.二轮补三位C": {
+        "recognition": {
+            "type": "DirectHit",
+            "param": {
+                "roi": [
+                    537,
+                    107,
+                    74,
+                    122
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": true,
+                "target_offset": [
+                    -26,
+                    -45,
+                    53,
+                    135
+                ]
+            }
+        },
+        "post_delay": 900,
+        "timeout": 6000,
+        "next": [
+            "派遣.器者选择确定"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": 4800,
+                "y": 1263
+            }
+        }
+    },
+    "派遣.二轮补两位A": {
+        "recognition": {
+            "type": "DirectHit",
+            "param": {
+                "roi": [
+                    400,
+                    409,
+                    77,
+                    135
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": true,
+                "target_offset": [
+                    -24,
+                    -40,
+                    51,
+                    120
+                ]
+            }
+        },
+        "post_delay": 900,
+        "timeout": 6000,
+        "next": [
+            "派遣.二轮补两位B"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": 4160,
+                "y": 672
+            }
+        }
+    },
+    "派遣.二轮补两位B": {
+        "recognition": {
+            "type": "DirectHit",
+            "param": {
+                "roi": [
+                    537,
+                    107,
+                    74,
+                    122
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": true,
+                "target_offset": [
+                    -26,
+                    -45,
+                    53,
+                    135
+                ]
+            }
+        },
+        "post_delay": 900,
+        "timeout": 6000,
+        "next": [
+            "派遣.器者选择确定"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": 4480,
+                "y": 672
+            }
+        }
+    },
+    "派遣.二轮零人判断": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    375,
+                    672,
+                    190,
+                    31
+                ],
+                "expected": "0\\s*/\\s*[0-9]"
+            }
+        },
+        "timeout": 1200,
+        "next": [
+            "派遣.工作状态三"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": 2560,
+                "y": 1263
+            }
+        }
+    },
+    "派遣.器者选择确定": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    1120,
+                    650,
+                    160,
+                    70
+                ],
+                "template": "入驻器者确认.png",
+                "threshold": 0.75
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": true
+            }
+        },
+        "post_delay": 1500,
+        "timeout": 6000,
+        "next": [
+            "派遣.指南分流"
+        ],
+        "on_error": [
+            "派遣.确定二兜底"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": 5120,
+                "y": 1211
+            }
+        }
+    },
+    "派遣.工作状态三": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "template": "更改工作状态排序.png",
+                "threshold": 0.8
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": true
+            }
+        },
+        "post_delay": 2000,
+        "timeout": 6000,
+        "next": [
+            "派遣.二轮余量三",
+            "派遣.二轮余量二",
+            "派遣.二轮余量一",
+            "派遣.二轮余量零",
+            "派遣.二轮不补"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": 3520,
+                "y": 1291
+            }
+        }
+    },
+    "派遣.指南分流": {
+        "next": [
+            "派遣.造进阶指南"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": 5760,
+                "y": 1407
+            }
+        }
+    },
+    "派遣.指南等待页面": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    0,
+                    0,
+                    420,
+                    70
+                ],
+                "expected": [
+                    "派遣公司",
+                    "派遣"
+                ]
+            }
+        },
+        "timeout": 15000,
+        "": {
+            "position": {
+                "x": 320,
+                "y": 2400
+            }
+        },
+        "next": [
+            "派遣.社会指南制造"
+        ],
+        "on_error": [
+            "派遣.指南等待页面放行"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": 320,
+                "y": 1376
+            }
+        }
+    },
+    "派遣.指南等待页面放行": {
+        "recognition": {
+            "type": "DirectHit",
+            "param": {
+                "roi": [
+                    0,
+                    0,
+                    0,
+                    0
+                ]
+            }
+        },
+        "timeout": 1000,
+        "": {
+            "position": {
+                "x": 640,
+                "y": 2400
+            }
+        },
+        "next": [
+            "派遣.社会指南制造"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": 640,
+                "y": 1297
+            }
+        }
+    },
+    "派遣.指南订单确定": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    686,
+                    393,
+                    170,
+                    70
+                ],
+                "template": "订单确定.png",
+                "threshold": 0.8
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": true
+            }
+        },
+        "post_delay": 2500,
+        "timeout": 8000,
+        "next": [
+            "派遣.返回办公室"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": 7038,
+                "y": 411
+            }
+        }
+    },
+    "派遣.指南进入入口": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    1050,
+                    390,
+                    230,
+                    190
+                ],
+                "template": "派遣公司.png",
+                "threshold": 0.85
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": true
+            }
+        },
+        "post_delay": 2500,
+        "timeout": 8000,
+        "": {
+            "position": {
+                "x": 0,
+                "y": 2400
+            }
+        },
+        "next": [
+            "派遣.指南等待页面"
+        ],
+        "on_error": [
+            "派遣.指南等待页面放行"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": 0,
+                "y": 1208
+            }
+        }
+    },
+    "派遣.最大数量": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "template": "最大制造数量.png",
+                "threshold": 0.8
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": true
+            }
+        },
+        "post_delay": 800,
+        "timeout": 6000,
+        "next": [
+            "派遣.点击制造"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": 6400,
+                "y": 504
+            }
+        }
+    },
+    "派遣.点击制造": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "template": "制造确定.png",
+                "threshold": 0.8
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": true
+            }
+        },
+        "post_delay": 2500,
+        "timeout": 8000,
+        "next": [
+            "派遣.指南订单确定"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": 6720,
+                "y": 504
+            }
+        }
+    },
+    "派遣.确定二兜底": {
+        "recognition": {
+            "type": "DirectHit",
+            "param": {
+                "roi": [
+                    1158,
+                    674,
+                    67,
+                    24
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": true,
+                "target_offset": [
+                    -6,
+                    -4,
+                    12,
+                    11
+                ]
+            }
+        },
+        "post_delay": 1500,
+        "timeout": 6000,
+        "next": [
+            "派遣.指南分流"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": 5440,
+                "y": 1163
+            }
+        }
+    },
+    "派遣.社会指南制造": {
+        "recognition": {
+            "type": "DirectHit",
+            "param": {
+                "roi": [
+                    86,
+                    454,
+                    20,
+                    22
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": true,
+                "target_offset": [
+                    -9,
+                    -9,
+                    19,
+                    21
+                ]
+            }
+        },
+        "post_delay": 2500,
+        "timeout": 8000,
+        "next": [
+            "派遣.进入区域二"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": 960,
+                "y": 1370
+            }
+        }
+    },
+    "派遣.返回办公室": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    24,
+                    8,
+                    72,
+                    50
+                ],
+                "template": "返回.png",
+                "threshold": 0.8
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": true
+            }
+        },
+        "post_delay": 2000,
+        "timeout": 8000,
+        "next": [
+            "博物易物机"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": 7371,
+                "y": 583
+            }
+        }
+    },
+    "派遣.进入区域二": {
+        "recognition": {
+            "type": "DirectHit",
+            "param": {
+                "roi": [
+                    566,
+                    69,
+                    301,
+                    101
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": true,
+                "target_offset": [
+                    0,
+                    0,
+                    4,
+                    0
+                ]
+            }
+        },
+        "post_delay": 2500,
+        "timeout": 8000,
+        "next": [
+            "派遣.二轮零人判断",
+            "派遣.二轮好感度一",
+            "派遣.二轮未满一"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": 1280,
+                "y": 1360
+            }
+        }
+    },
+    "派遣.造中级指南": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    130,
+                    293,
+                    155,
+                    36
+                ],
+                "expected": "中级"
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    126,
+                    288,
+                    169,
+                    49
+                ]
+            }
+        },
+        "post_delay": 1200,
+        "timeout": 6000,
+        "next": [
+            "派遣.最大数量"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": 6080,
+                "y": 902
+            }
+        }
+    },
+    "派遣.造初级指南": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    138,
+                    173,
+                    161,
+                    40
+                ],
+                "expected": "初级"
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    134,
+                    167,
+                    174,
+                    52
+                ]
+            }
+        },
+        "post_delay": 1200,
+        "timeout": 6000,
+        "next": [
+            "派遣.最大数量"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": 6080,
+                "y": 1313
+            }
+        }
+    },
+    "派遣.造进阶指南": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    135,
+                    535,
+                    138,
+                    29
+                ],
+                "expected": "进阶"
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    127,
+                    530,
+                    157,
+                    42
+                ]
+            }
+        },
+        "post_delay": 1200,
+        "timeout": 6000,
+        "next": [
+            "派遣.最大数量"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": 6075,
+                "y": 24
+            }
+        }
+    },
+    "派遣.造高级指南": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    142,
+                    424,
+                    131,
+                    18
+                ],
+                "expected": "高级"
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    136,
+                    414,
+                    150,
+                    38
+                ]
+            }
+        },
+        "post_delay": 1200,
+        "timeout": 6000,
+        "next": [
+            "派遣.最大数量"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": 6080,
+                "y": 443
+            }
+        }
+    },
+    "点击空白处": {
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    1216,
+                    281,
+                    38,
+                    228
+                ]
+            }
+        },
+        "post_delay": 1800,
+        "timeout": 6000,
+        "next": [
+            "返回大厅"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": 8426,
+                "y": 626
+            }
+        }
+    },
+    "返回大厅": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    217,
+                    18,
+                    41,
+                    41
+                ],
+                "template": [
+                    "返回大厅.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "$__mpe_code": {
+            "position": {
+                "x": 8745,
+                "y": 612
+            }
+        }
+    }
+}

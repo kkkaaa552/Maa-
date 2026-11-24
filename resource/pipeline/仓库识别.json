@@ -1,0 +1,375 @@
+{
+    "$__mpe_config_仓库识别": {
+        "$__mpe_code": {
+            "prefix": "",
+            "coordinateMode": "absolute-v1",
+            "lastSyncTime": 1795096959452,
+            "isModifiedExternally": false,
+            "isDeleted": false,
+            "filePath": "D:\\mixian\\my-maa\\resource\\base\\pipeline\\仓库识别.json",
+            "savedViewport": {
+                "x": 307,
+                "y": 86,
+                "zoom": 0.82
+            },
+            "filename": "仓库识别",
+            "version": "v2.1.3"
+        }
+    },
+    "仓库就绪": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    0,
+                    0,
+                    320,
+                    60
+                ],
+                "expected": [
+                    "物资库"
+                ]
+            }
+        },
+        "post_delay": 800,
+        "timeout": 8000,
+        "next": [
+            "仓库物料"
+        ],
+        "on_error": [
+            "仓库进入"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": 320,
+                "y": 62
+            }
+        }
+    },
+    "仓库物料": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    63,
+                    155,
+                    149,
+                    38
+                ],
+                "template": "物料.png",
+                "threshold": 0.8
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": true
+            }
+        },
+        "post_wait_freezes": {
+            "time": 500,
+            "timeout": 6000
+        },
+        "timeout": 8000,
+        "next": [
+            "抓取物料"
+        ],
+        "on_error": [
+            "仓库页签兜底"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": 619,
+                "y": -39
+            }
+        }
+    },
+    "仓库票券": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    57,
+                    374,
+                    186,
+                    48
+                ],
+                "template": "票券.png",
+                "threshold": 0.8
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": true
+            }
+        },
+        "post_wait_freezes": {
+            "time": 500,
+            "timeout": 6000
+        },
+        "timeout": 8000,
+        "next": [
+            "抓取票券"
+        ],
+        "on_error": [
+            "仓库页签兜底"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": 1280,
+                "y": 15
+            }
+        }
+    },
+    "仓库资源": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    105,
+                    226,
+                    147,
+                    48
+                ],
+                "template": "资源.png",
+                "threshold": 0.8
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": true
+            }
+        },
+        "post_wait_freezes": {
+            "time": 500,
+            "timeout": 6000
+        },
+        "timeout": 8000,
+        "next": [
+            "抓取资源"
+        ],
+        "on_error": [
+            "仓库页签兜底"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": 905,
+                "y": -17
+            }
+        }
+    },
+    "仓库返回": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    0,
+                    0,
+                    200,
+                    80
+                ],
+                "template": "返回.png",
+                "threshold": 0.8
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": true
+            }
+        },
+        "post_wait_freezes": {
+            "time": 500,
+            "timeout": 6000
+        },
+        "timeout": 8000,
+        "$__mpe_code": {
+            "position": {
+                "x": 1839,
+                "y": 63
+            }
+        },
+        "next": [
+            "仓库快照报告"
+        ]
+    },
+    "抓取物料": {
+        "recognition": {
+            "type": "DirectHit",
+            "param": {
+                "roi": [
+                    0,
+                    0,
+                    0,
+                    0
+                ]
+            }
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "仓库抓取",
+                "custom_action_param": "{\"cat\": \"物料\", \"rows\": 4, \"scroll\": 3}",
+                "target": true
+            }
+        },
+        "timeout": 60000,
+        "next": [
+            "仓库资源"
+        ],
+        "on_error": [
+            "仓库返回"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": 619,
+                "y": 120
+            }
+        }
+    },
+    "抓取资源": {
+        "recognition": {
+            "type": "DirectHit",
+            "param": {
+                "roi": [
+                    0,
+                    0,
+                    0,
+                    0
+                ]
+            }
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "仓库抓取",
+                "custom_action_param": "{\"cat\": \"资源\", \"rows\": 4, \"scroll\": 3}",
+                "target": true
+            }
+        },
+        "timeout": 60000,
+        "next": [
+            "仓库票券"
+        ],
+        "on_error": [
+            "仓库返回"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": 905,
+                "y": 120
+            }
+        }
+    },
+    "抓取票券": {
+        "recognition": {
+            "type": "DirectHit",
+            "param": {
+                "roi": [
+                    0,
+                    0,
+                    0,
+                    0
+                ]
+            }
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "仓库抓取",
+                "custom_action_param": "{\"cat\": \"票券\", \"rows\": 3}",
+                "target": true
+            }
+        },
+        "timeout": 60000,
+        "next": [
+            "仓库返回"
+        ],
+        "on_error": [
+            "仓库返回"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": 1280,
+                "y": 120
+            }
+        }
+    },
+    "仓库进入": {
+        "max_hit": 2,
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    980,
+                    640,
+                    150,
+                    60
+                ],
+                "template": "物资库.png",
+                "threshold": 0.8
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": true
+            }
+        },
+        "post_wait_freezes": {
+            "time": 500,
+            "timeout": 6000
+        },
+        "timeout": 8000,
+        "next": [
+            "仓库就绪"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": 0,
+                "y": 0
+            }
+        }
+    },
+    "仓库页签兜底": {
+        "timeout": 8000,
+        "next": [
+            "仓库返回"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": 1567,
+                "y": 216
+            }
+        }
+    },
+    "仓库快照报告": {
+        "recognition": {
+            "type": "DirectHit",
+            "param": {
+                "roi": [
+                    0,
+                    0,
+                    0,
+                    0
+                ]
+            }
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "仓库快照",
+                "target": true
+            }
+        },
+        "timeout": 30000,
+        "$__mpe_code": {
+            "position": {
+                "x": 2100,
+                "y": 63
+            }
+        }
+    }
+}

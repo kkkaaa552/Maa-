@@ -1,0 +1,940 @@
+{
+    "$__mpe_config_均衡材料刷取": {
+        "$__mpe_code": {
+            "prefix": "",
+            "coordinateMode": "absolute-v1",
+            "lastSyncTime": 1795439480174,
+            "isModifiedExternally": false,
+            "isDeleted": false,
+            "filePath": "D:\\mixian\\my-maa\\resource\\base\\pipeline\\均衡材料刷取.json",
+            "savedViewport": {
+                "x": -1828,
+                "y": 189,
+                "zoom": 0.64
+            },
+            "filename": "均衡材料刷取",
+            "version": "v2.1.3"
+        }
+    },
+    "作战.一键调整": {
+        "desc": "点「一键调整」自动配队。模板待填：作战.一键调整.png",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    294,
+                    503,
+                    182,
+                    60
+                ],
+                "template": [
+                    "作战.一键调整.png"
+                ],
+                "threshold": 0.85
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    325,
+                    519,
+                    114,
+                    23
+                ]
+            }
+        },
+        "post_delay": 1500,
+        "timeout": 10000,
+        "next": [
+            "作战.确定"
+        ],
+        "on_error": [
+            "作战.异常兜底"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": 2133,
+                "y": 783
+            }
+        }
+    },
+    "作战.停止": {
+        "desc": "活力不足且不允许购买/等待时结束本任务；next 为空 = 自然收尾（不用 \"stop\"，免得任务被标失败）",
+        "next": [
+            "作战.空白处点击"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": 4087,
+                "y": -42
+            }
+        }
+    },
+    "作战.关卡页就绪": {
+        "desc": "确认已在关卡选择页 —— 模板待填：作战_关卡页标题.png（用页面固定特征，别用会变的数字）",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    0,
+                    0,
+                    1280,
+                    720
+                ],
+                "template": [
+                    "作战.关卡页就绪.png"
+                ],
+                "threshold": 0.8
+            }
+        },
+        "post_delay": 800,
+        "timeout": 10000,
+        "next": [
+            "作战.开始训练"
+        ],
+        "on_error": [
+            "作战.返回大厅"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": 3840,
+                "y": 1312
+            }
+        }
+    },
+    "作战.均衡决策": {
+        "desc": "★ 决策点（Custom 作战均衡决策）。读 data/warehouse/*.json 按阈值判这轮刷哪类/哪级/哪个职业，用 override_pipeline 改「选类别/选等级/选职业」三个节点的 template，再 override_next 出去。默认 next 指向手动分支：仓库读数为空或 Custom 失败时仍按操作者选的类别继续，不卡死。param: op=decide, mode=balance|manual（由 option「刷取方式」覆盖）, level/profession（由「关卡等级」「核定牌职业」option 覆盖）",
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "作战均衡决策",
+                "custom_action_param": {
+                    "level": "",
+                    "mode": "balance",
+                    "op": "decide",
+                    "profession": ""
+                }
+            }
+        },
+        "next": [
+            "作战.展开类别"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": 4480,
+                "y": 249
+            }
+        }
+    },
+    "作战.完成": {
+        "desc": "扫荡结算后点「完成」。模板待填：作战.完成.png。timeout 给到 180s：扫荡动画时长与被扫次数成正比",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    1029,
+                    604,
+                    182,
+                    68
+                ],
+                "template": [
+                    "作战.完成.png"
+                ],
+                "threshold": 0.85
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": true
+            }
+        },
+        "post_delay": 2000,
+        "timeout": 180000,
+        "next": [
+            "作战.返回"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": 3514,
+                "y": 808
+            }
+        }
+    },
+    "作战.展开类别": {
+        "desc": "确认「培养」组已展开、类别页签可见。实测（2026-11-23）：左侧栏目是手风琴——展开「培养」组显示 6 行（培养/冬谷币/装备/教材/场域/考核），展开「考核」组显示 5 个职业，两组互斥，进页面停在哪一组取决于上次操作。判据用「冬谷币」那一行在不在（冬谷币行 y155-215）：在就说明培养组已展开，直接去选类别；不在说明被收起，走 on_error 点组头展开。★ 不能无条件点组头：已展开时再点一下会把它收起（实测 _fold_c / _fold_d 两张截图），左栏一收起，选类别的固定坐标就全错位。",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    0,
+                    130,
+                    240,
+                    100
+                ],
+                "template": [
+                    "作战.培养_冬谷币.png"
+                ],
+                "threshold": 0.85
+            }
+        },
+        "post_delay": 400,
+        "timeout": 6000,
+        "next": [
+            "作战.选类别"
+        ],
+        "on_error": [
+            "作战.点开培养"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": 0,
+                "y": 1438
+            }
+        }
+    },
+    "作战.开始训练": {
+        "desc": "关卡列表面板上点「开始训练」进材料选择页。模板待填：作战.开始训练.png",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    140,
+                    500,
+                    160,
+                    160
+                ],
+                "template": [
+                    "作战.开始训练.png"
+                ],
+                "threshold": 0.85
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": true
+            }
+        },
+        "post_wait_freezes": {
+            "time": 800,
+            "target": [
+                200,
+                200,
+                880,
+                300
+            ],
+            "timeout": 8000
+        },
+        "post_delay": 1800,
+        "timeout": 10000,
+        "next": [
+            "作战.均衡决策"
+        ],
+        "on_error": [
+            "作战.返回大厅"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": 4160,
+                "y": 972
+            }
+        }
+    },
+    "作战.异常兜底": {
+        "desc": "任何一步识别不到都从这里回大厅，不把模拟器留在战斗或面板页",
+        "next": [
+            "作战.返回大厅"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": 4181,
+                "y": 621
+            }
+        }
+    },
+    "作战.最大": {
+        "desc": "点「最大」把扫荡次数拉到上限。模板待填：作战.最大.png（别复用 最大制造数量.png）",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    892,
+                    310,
+                    63,
+                    60
+                ],
+                "template": [
+                    "作战.最大.png"
+                ],
+                "threshold": 0.85
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": true
+            }
+        },
+        "post_delay": 1000,
+        "timeout": 8000,
+        "next": [
+            "作战.确认"
+        ],
+        "on_error": [
+            "作战.异常兜底"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": 2880,
+                "y": 807
+            }
+        }
+    },
+    "作战.本轮计数": {
+        "desc": "★ 轮次计数器（DirectHit，不识别）：每命中一次算一轮，max_hit 由「刷取轮数」option 覆盖。用尽后本节点不再命中，「作战.返回」的 next 自动落到「作战.达标收尾」——不用写代码",
+        "max_hit": 5,
+        "post_delay": 500,
+        "next": [
+            "作战.均衡决策"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": 4160,
+                "y": 249
+            }
+        }
+    },
+    "作战.活力不足界面": {
+        "desc": "★ 活力不足判据 = 弹窗里的选项标签，不是变灰的按钮。操作者实测：体力不足时点速通会弹出「活力值药剂 / 购买活力值」窗；按钮变灰前后的视觉差别太小，截成模板匹配不稳，换成弹窗里的标签——它是新出现的一整块，特征强得多。两张模板任一命中即判弹窗在场（template 列表取最高分，不是全部都要中）",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    220,
+                    116,
+                    844,
+                    496
+                ],
+                "template": [
+                    "作战.购买活力值.png",
+                    "作战.活力值药剂.png",
+                    "作战.活力不足界面.png"
+                ],
+                "threshold": 0.85
+            }
+        },
+        "post_delay": 800,
+        "timeout": 6000,
+        "next": [
+            "作战.活力决策"
+        ],
+        "on_error": [
+            "作战.异常兜底"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": 3495,
+                "y": 243
+            }
+        }
+    },
+    "作战.活力决策": {
+        "desc": "★ 分流开关（DirectHit，不识别）：默认 next = 停止，默认不花任何资源。只有操作者把「活力值用尽怎么办」选成购买/等待，option 才 override 这里的 next",
+        "next": [
+            "作战.停止"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": 3778,
+                "y": 109
+            }
+        }
+    },
+    "作战.点开培养": {
+        "desc": "培养组被收起时点组头把它展开，露出类别页签。模板：作战.培养.png（实测 1.0000）",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    0,
+                    50,
+                    340,
+                    110
+                ],
+                "template": [
+                    "作战.培养.png"
+                ],
+                "threshold": 0.85
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": true
+            }
+        },
+        "post_delay": 1200,
+        "timeout": 6000,
+        "next": [
+            "作战.选类别"
+        ],
+        "on_error": [
+            "作战.选类别"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": 320,
+                "y": 1421
+            }
+        }
+    },
+    "作战.确定": {
+        "desc": "点「确定」提交配队。模板待填：作战.确定.png（别复用现成的 制造确定.png，那是制造面板的）",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    845,
+                    505,
+                    180,
+                    65
+                ],
+                "template": [
+                    "作战.确定.png"
+                ],
+                "threshold": 0.85
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    884,
+                    523,
+                    84,
+                    32
+                ]
+            }
+        },
+        "post_delay": 1200,
+        "timeout": 8000,
+        "next": [
+            "作战.最大"
+        ],
+        "on_error": [
+            "作战.异常兜底"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": 2536,
+                "y": 753
+            }
+        }
+    },
+    "作战.确认": {
+        "desc": "点「确认」真正开始扫荡（这一步之后活力就被扣了）。模板待填：作战.确认.png",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    780,
+                    398,
+                    152,
+                    45
+                ],
+                "template": [
+                    "作战.确认.png"
+                ],
+                "threshold": 0.85
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": true
+            }
+        },
+        "post_wait_freezes": {
+            "time": 1000,
+            "target": [
+                420,
+                240,
+                440,
+                240
+            ],
+            "timeout": 10000
+        },
+        "post_delay": 2000,
+        "timeout": 15000,
+        "next": [
+            "作战.完成"
+        ],
+        "on_error": [
+            "作战.活力不足界面"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": 3200,
+                "y": 764
+            }
+        }
+    },
+    "作战.空白处点击": {
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    1216,
+                    281,
+                    38,
+                    228
+                ]
+            }
+        },
+        "post_delay": 1500,
+        "timeout": 6000,
+        "next": [
+            "作战.返回大厅"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": 4613,
+                "y": -35
+            }
+        }
+    },
+    "作战.等待恢复": {
+        "desc": "原地等活力自然恢复再重试（不花资源）。post_delay 60000 × max_hit 5 ≈ 最多等 5 分钟",
+        "max_hit": 5,
+        "post_delay": 60000,
+        "timeout": 70000,
+        "next": [
+            "作战.速通"
+        ],
+        "on_error": [
+            "作战.停止"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": 1280,
+                "y": 565
+            }
+        }
+    },
+    "作战.调整": {
+        "desc": "点「调整」打开队伍调整面板。模板待填：作战.调整.png",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    328,
+                    494,
+                    158,
+                    37
+                ],
+                "template": [
+                    "作战.调整.png"
+                ],
+                "threshold": 0.85
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": true
+            }
+        },
+        "post_wait_freezes": {
+            "time": 800,
+            "target": [
+                200,
+                140,
+                880,
+                440
+            ],
+            "timeout": 8000
+        },
+        "post_delay": 1500,
+        "timeout": 10000,
+        "next": [
+            "作战.一键调整"
+        ],
+        "on_error": [
+            "作战.异常兜底"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": 1774,
+                "y": 898
+            }
+        }
+    },
+    "作战.购买次数": {
+        "desc": "★ 买几次由操作者定（interface 的「购买活力值次数」选项），这里只负责点那个「+」。操作者实测：弹窗打开时次数已经是 1，所以 买 N 次 = 点 (N-1) 下。next 把自己放第一位做自环，max_hit 就是要点的下数；买 1 次时 option 把自环摘掉（next 只剩确认），一下都不点。找不到「+」（已达上限或次数不可调）也落到确认，不卡死",
+        "max_hit": 1,
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    280,
+                    180,
+                    720,
+                    360
+                ],
+                "template": [
+                    "作战.购买活力值次数选择.png"
+                ],
+                "threshold": 0.85
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": true
+            }
+        },
+        "post_delay": 600,
+        "timeout": 6000,
+        "next": [
+            "作战.购买确认"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": 960,
+                "y": 96
+            }
+        }
+    },
+    "作战.购买活力": {
+        "desc": "点补充活力弹窗里的「购买活力值」入口（会扣资源）。max_hit 3 防连点。roi 先按整个弹窗口径给，实机跑通后再收窄到该标签的实际位置",
+        "max_hit": 3,
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    280,
+                    180,
+                    720,
+                    360
+                ],
+                "template": [
+                    "作战.购买活力值.png"
+                ],
+                "threshold": 0.85
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": true
+            }
+        },
+        "post_delay": 1500,
+        "timeout": 8000,
+        "next": [
+            "作战.购买次数"
+        ],
+        "on_error": [
+            "作战.停止"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": 640,
+                "y": 0
+            }
+        }
+    },
+    "作战.购买确认": {
+        "desc": "确认购买（会扣资源）—— 用灰珀买活力值那层确认窗里的确认按钮。走到这里说明操作者已经在 option 里选了「购买活力值」，次数也已经按选项点完",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    280,
+                    180,
+                    720,
+                    360
+                ],
+                "template": [
+                    "灰珀购买活力值确认.png"
+                ],
+                "threshold": 0.85
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": true
+            }
+        },
+        "post_delay": 1500,
+        "timeout": 8000,
+        "next": [
+            "作战.速通"
+        ],
+        "on_error": [
+            "作战.停止"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": 1280,
+                "y": 12
+            }
+        }
+    },
+    "作战.达标收尾": {
+        "desc": "收尾：点「返回大厅」离开作战页，不打断后续任务队列",
+        "next": [
+            "作战.返回大厅"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": 4160,
+                "y": 1557
+            }
+        }
+    },
+    "作战.返回": {
+        "desc": "点返回退到关卡页。模板用现成的 返回.png（已存在，40x34），不用新裁",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    21,
+                    9,
+                    72,
+                    49
+                ],
+                "template": [
+                    "返回.png"
+                ],
+                "threshold": 0.9
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": true
+            }
+        },
+        "post_delay": 1500,
+        "timeout": 8000,
+        "next": [
+            "作战.本轮计数",
+            "作战.达标收尾"
+        ],
+        "on_error": [
+            "作战.异常兜底"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": 3826,
+                "y": 782
+            }
+        }
+    },
+    "作战.返回大厅": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    206,
+                    10,
+                    60,
+                    56
+                ],
+                "template": [
+                    "返回大厅.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": true
+            }
+        },
+        "$__mpe_code": {
+            "position": {
+                "x": 5242,
+                "y": 101
+            }
+        }
+    },
+    "作战.进入入口": {
+        "desc": "任务入口：调 Custom 清空「本任务已刷过什么」的记录，然后进导航。Custom 参数 op=reset。均衡模式下靠这份记录避免反复刷同一个材料",
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "作战均衡决策",
+                "custom_action_param": {
+                    "op": "reset"
+                }
+            }
+        },
+        "next": [
+            "作战.进入演训"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": 3200,
+                "y": 1415
+            }
+        }
+    },
+    "作战.进入演训": {
+        "desc": "主界面点「演训」进作战页 —— 模板待填：作战_演训入口.png",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    880,
+                    220,
+                    200,
+                    120
+                ],
+                "template": [
+                    "作战.进入演训.png"
+                ],
+                "threshold": 0.8
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": true
+            }
+        },
+        "post_delay": 1500,
+        "timeout": 8000,
+        "next": [
+            "作战.关卡页就绪"
+        ],
+        "on_error": [
+            "作战.返回大厅"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": 3520,
+                "y": 1312
+            }
+        }
+    },
+    "作战.选等级": {
+        "desc": "点关卡等级（子/丑/寅/卯/辰）。★ 固定坐标点击：target 由 Custom 按「类别 + 等级」覆盖，默认是冬谷币页的辰卡中心 (1085,320)。为什么不用模板：现有一套 作战.等级_*.png 全部裁自【考核页】的白色椭圆数字，在考核页 0.9697~0.9730 可用，但在冬谷币页只有 0.3921~0.4550、教材页 0.3764~0.4393 —— 那两页的等级标识是彩色横幅上的白字（「05 冬谷币:辰」），形状与背景都不同，一套模板覆盖不了三套页面。这正是 19:46 那次 作战.选等级 恒 0.405459 重试到超时的根因。",
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    1085,
+                    320
+                ]
+            }
+        },
+        "post_delay": 1300,
+        "timeout": 6000,
+        "next": [
+            "作战.速通"
+        ],
+        "on_error": [
+            "作战.返回大厅"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": 1280,
+                "y": 1806
+            }
+        }
+    },
+    "作战.选类别": {
+        "desc": "点材料类别页签（冬谷币 / 教材 / 核定牌）。★ 固定坐标点击：target 由 Custom 按决策结果覆盖 —— 冬谷币 (110,185) / 教材 (110,337) / 考核 (110,485)。为什么不用模板：类别页签有选中/未选中两态，2026-11-23 离线 NCC 实测 作战.培养_教材.png 在教材页只有 0.7283、作战.考核.png 在考核页只有 0.6780，都低于阈值 0.85，拿模板点必然失败；而左栏每一行的中心 y 是固定的（x 恒 110）。",
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    110,
+                    185
+                ]
+            }
+        },
+        "post_delay": 1300,
+        "timeout": 6000,
+        "next": [
+            "作战.选职业"
+        ],
+        "on_error": [
+            "作战.返回大厅"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": 640,
+                "y": 1687
+            }
+        }
+    },
+    "作战.选职业": {
+        "desc": "点职业页签（远击/轻锐/宿卫/构术/战略）——**只有核定牌有这一层**。默认 DirectHit + DoNothing 直通（冬谷币/教材没有职业层）；Custom 判定是核定牌时改成 Click + 固定坐标：x 恒 110，宿卫 247 / 构术 315 / 远击 382 / 轻锐 450 / 战略 522。作战.职业_*.png 五张模板在考核页实测 1.0000 可用，走坐标只是为了少一次识别。",
+        "post_delay": 800,
+        "next": [
+            "作战.选等级"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": 960,
+                "y": 1851
+            }
+        }
+    },
+    "作战.速通": {
+        "desc": "点「速通」开始扫荡。模板待填：作战.速通.png。next 两个候选按顺序试：先判「活力不足」弹窗（体力不够时点速通会弹补充活力窗，操作者实测确认），没弹窗才去「调整」——这样体力耗尽那条支路不依赖 on_error 也能接上",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    900,
+                    540,
+                    360,
+                    160
+                ],
+                "template": [
+                    "作战.速通.png"
+                ],
+                "threshold": 0.85
+            }
+        },
+        "pre_delay": 300,
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": true
+            }
+        },
+        "post_wait_freezes": {
+            "time": 1000,
+            "target": [
+                420,
+                240,
+                440,
+                240
+            ],
+            "timeout": 8000
+        },
+        "post_delay": 1500,
+        "timeout": 10000,
+        "next": [
+            "作战.活力不足界面",
+            "作战.调整"
+        ],
+        "on_error": [
+            "作战.异常兜底"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": 1600,
+                "y": 193
+            }
+        }
+    }
+}

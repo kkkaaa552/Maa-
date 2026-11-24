@@ -1,0 +1,201 @@
+name: Build Release
+
+# 打包发布：打 tag（v*）时自动出包并挂到 GitHub Release 上。
+# 手动触发也行（Actions 页面点 Run workflow，填一个版本号）。
+#
+# 与官方 MaaPracticeBoilerplate 的 install.yml 的主要差异：
+#   1. 只出 windows-x86_64 一个产物 —— 本项目的控制器只有 Adb(安卓模拟器) 和 Win32(桌面窗口)，
+#      后者的 screencap/mouse 实现是 PrintWindow + SendMessage，离开 Windows 没有意义；
+#      runtimes/ 目录也只有 win-x64。
+#   2. 不需要从 GitHub 下载 MaaFramework 原生库和 MFAAvalonia —— 这两个已经在仓库里了
+#      （runtimes/ libs/ plugins/ 与官方 v2.16.6 发布包逐字节一致），省掉两步网络依赖。
+#   3. 多了「准备嵌入式 Python」一步 —— agent 用 cv2/numpy/PIL/openpyxl，不能让用户自己装。
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      version:
+        description: '版本号（不带 v），例如 0.1.0'
+        required: true
+        default: '0.1.0'
+
+env:
+  PY_VERSION: '3.13.17'
+  PY_EMBED_URL: 'https://www.python.org/ftp/python/3.13.17/python-3.13.17-embed-amd64.zip'
+  PY_EMBED_SIZE: '11441267'
+
+jobs:
+  # 先算版本号，后面两个 job 都用
+  meta:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.ver.outputs.version }}
+      tag: ${{ steps.ver.outputs.tag }}
+      prerelease: ${{ steps.ver.outputs.prerelease }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 解析版本号
+        id: ver
+        shell: bash
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            VERSION="${{ github.event.inputs.version }}"
+          else
+            VERSION="${GITHUB_REF_NAME#v}"
+          fi
+          TAG="v${VERSION}"
+
+          # alpha/beta/rc/dev 或 -ci. 结尾的判为预发布
+          if echo "$VERSION" | grep -qiE 'alpha|beta|rc|dev|-ci\.'; then
+            PRE=true
+          else
+            PRE=false
+          fi
+
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "prerelease=$PRE" >> "$GITHUB_OUTPUT"
+          echo "版本: $VERSION  tag: $TAG  预发布: $PRE"
+
+  build:
+    needs: meta
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: false
+
+      - name: 安装构建期 Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      # ---------------------------------------------------------------
+      # 第一步：准备嵌入式 Python（这是官方模板没有的一步）
+      # 为什么不用 setup-python 那个解释器直接进包：
+      #   setup-python 装的是完整运行时（含 Doc/include/tcl，约 110 MB），
+      #   官方 embeddable 只有 21.6 MB，且它的 _pth 机制天然从包内相对路径找库，
+      #   不会像 venv 那样把 home 指向构建机的绝对路径（用户换机器就废）。
+      # ---------------------------------------------------------------
+      - name: 下载嵌入式 Python
+        shell: pwsh
+        run: |
+          $url = "$env:PY_EMBED_URL"
+          $dst = "py-embed.zip"
+          $expect = [int]$env:PY_EMBED_SIZE
+
+          # python.org 偶尔会断流，续传重试几次；最后按字节数硬校验
+          for ($i = 1; $i -le 6; $i++) {
+            $cur = if (Test-Path $dst) { (Get-Item $dst).Length } else { 0 }
+            if ($cur -eq $expect) { break }
+            Write-Host "第 $i 次下载，已有 $cur / $expect B"
+            curl.exe -sL --max-time 120 -C - -o $dst $url
+          }
+
+          $got = (Get-Item $dst).Length
+          if ($got -ne $expect) {
+            Write-Error "下载不完整: $got != $expect"
+            exit 1
+          }
+          Write-Host "下载完成 $got B"
+          Get-FileHash $dst -Algorithm SHA256 | Format-List
+
+      - name: 解压嵌入式 Python
+        shell: pwsh
+        run: |
+          Expand-Archive py-embed.zip -DestinationPath python -Force
+          # _pth 决定 sys.path；加上 Lib\site-packages 并启用 site 才能 import 第三方库
+          $pth = Get-ChildItem python -Filter 'python*._pth' | Select-Object -First 1
+          @('python313.zip', '.', 'Lib\site-packages', 'import site') |
+            Set-Content -Path $pth.FullName -Encoding ascii
+          Write-Host "--- $($pth.Name) ---"
+          Get-Content $pth.FullName
+          & python\python.exe -c "import sys; print(sys.version, sys.prefix)"
+
+      - name: 安装运行依赖到嵌入式 Python
+        shell: pwsh
+        run: |
+          $sp = "python\Lib\site-packages"
+          New-Item -ItemType Directory -Force -Path $sp | Out-Null
+          # 用构建机上的正式 Python 的 pip，往 --target 里装（embeddable 自身不带 pip）
+          python -m pip install --upgrade pip
+          python -m pip install --target $sp -r tools\requirements.txt
+          Write-Host "site-packages:"
+          $i = Get-ChildItem $sp -Recurse -File
+          Write-Host ("  {0} files, {1:N1} MB" -f $i.Count, (($i | Measure-Object Length -Sum).Sum / 1MB))
+
+      - name: 自检依赖可 import
+        shell: pwsh
+        run: |
+          $env:MAAFW_BINARY_PATH = "$PWD\maafw"
+          & python\python.exe -c "import numpy,cv2,PIL,openpyxl,jsonschema,maa; print('all imports OK')"
+          if ($LASTEXITCODE -ne 0) { exit 1 }
+
+      - name: 校验 OCR 模型
+        shell: pwsh
+        run: python tools\configure.py --check
+
+      - name: 打包
+        shell: pwsh
+        run: |
+          $ver = "${{ needs.meta.outputs.version }}"
+          python tools\build.py $ver win x86_64
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          Get-ChildItem dist | Format-Table Name, Length
+
+      - name: 上传 artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: 物华弥新MAA-win-x86_64-${{ needs.meta.outputs.tag }}
+          path: dist/*.zip
+          if-no-files-found: error
+          retention-days: 14
+
+  release:
+    needs: [meta, build]
+    if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: 摊平产物
+        run: |
+          find artifacts -name '*.zip' -exec mv {} . \;
+          ls -lh *.zip
+
+      - name: 生成 Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ needs.meta.outputs.tag }}
+          name: ${{ needs.meta.outputs.tag }}
+          prerelease: ${{ needs.meta.outputs.prerelease == 'true' }}
+          files: '*.zip'
+          generate_release_notes: true
+          body: |
+            ## 使用说明
+
+            1. 下载下方 `物华弥新MAA-v*-win-x86_64.zip`
+            2. **解压到纯英文路径**（中文路径可能让 MaaFramework 找不到资源）
+            3. 双击 `物华弥新MAA.exe`
+            4. 首次运行需要在设置里指定 MuMu 的 adb 路径，或先 `adb connect 127.0.0.1:16384`
+
+            ## 环境要求
+
+            - Windows 10 / 11 x64
+            - .NET 10 Runtime
+            - MuMu 模拟器，分辨率设为 1280×720（MaaFramework 按 720p 画布识别）
+            - 游戏包名 `com.cipaishe.laigu`
+
+            ## 已内置
+
+            - MFAAvalonia v2.16.6（通用 UI）
+            - MaaFramework 5.14.3 原生库
+            - PP-OCRv6 OCR 模型
+            - 嵌入式 Python 3.13 + 全部运行依赖（无需另装 Python）

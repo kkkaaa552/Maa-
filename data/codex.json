@@ -1,0 +1,1178 @@
+{
+  "source": [
+    "D:\\新建文件夹\\物华弥新-物料\\物华弥新-物料.xlsx",
+    "D:\\新建文件夹\\物华弥新-资源\\物华弥新-资源.xlsx",
+    "D:\\新建文件夹\\物华弥新-票券\\物华弥新-票券.xlsx"
+  ],
+  "items": [
+    {
+      "id": 102,
+      "name": "冬谷畅饮水",
+      "cat": "物料",
+      "quality": 3,
+      "icon": "冬谷畅饮水.png"
+    },
+    {
+      "id": 103,
+      "name": "冬谷神秘水",
+      "cat": "物料",
+      "quality": 4,
+      "icon": "冬谷神秘水.png"
+    },
+    {
+      "id": 2101,
+      "name": "初级社会指南",
+      "cat": "物料",
+      "quality": "",
+      "icon": "初级社会指南.png"
+    },
+    {
+      "id": 2102,
+      "name": "中级社会指南",
+      "cat": "物料",
+      "quality": 1,
+      "icon": "中级社会指南.png"
+    },
+    {
+      "id": 2103,
+      "name": "高级社会指南",
+      "cat": "物料",
+      "quality": 2,
+      "icon": "高级社会指南.png"
+    },
+    {
+      "id": 2104,
+      "name": "进阶社会学",
+      "cat": "物料",
+      "quality": 3,
+      "icon": "进阶社会学.png"
+    },
+    {
+      "id": 2105,
+      "name": "深度社会学",
+      "cat": "物料",
+      "quality": 4,
+      "icon": "深度社会学.png"
+    },
+    {
+      "id": 2301,
+      "name": "灰珀精华涂料",
+      "cat": "物料",
+      "quality": "",
+      "icon": "灰珀精华涂料.png"
+    },
+    {
+      "id": 2302,
+      "name": "灰珀碎片涂料",
+      "cat": "物料",
+      "quality": 1,
+      "icon": "灰珀碎片涂料.png"
+    },
+    {
+      "id": 2303,
+      "name": "灰珀结晶涂料",
+      "cat": "物料",
+      "quality": 2,
+      "icon": "灰珀结晶涂料.png"
+    },
+    {
+      "id": 2304,
+      "name": "精炼灰雾涂料",
+      "cat": "物料",
+      "quality": 3,
+      "icon": "精炼灰雾涂料.png"
+    },
+    {
+      "id": 2463,
+      "name": "三方晶石",
+      "cat": "物料",
+      "quality": 1,
+      "icon": "三方晶石.png"
+    },
+    {
+      "id": 2464,
+      "name": "四方晶石",
+      "cat": "物料",
+      "quality": 2,
+      "icon": "四方晶石.png"
+    },
+    {
+      "id": 2465,
+      "name": "六方晶石",
+      "cat": "物料",
+      "quality": 3,
+      "icon": "六方晶石.png"
+    },
+    {
+      "id": 2466,
+      "name": "等轴晶石",
+      "cat": "物料",
+      "quality": 4,
+      "icon": "等轴晶石.png"
+    },
+    {
+      "id": 2467,
+      "name": "本源模块",
+      "cat": "物料",
+      "quality": 1,
+      "icon": "本源模块.png"
+    },
+    {
+      "id": 2468,
+      "name": "稳态模块",
+      "cat": "物料",
+      "quality": 2,
+      "icon": "稳态模块.png"
+    },
+    {
+      "id": 2469,
+      "name": "进阶模块",
+      "cat": "物料",
+      "quality": 3,
+      "icon": "进阶模块.png"
+    },
+    {
+      "id": 2501,
+      "name": "加速密钥",
+      "cat": "物料",
+      "quality": 3,
+      "icon": "加速密钥.png"
+    },
+    {
+      "id": 3001,
+      "name": "征集信",
+      "cat": "物料",
+      "quality": 3,
+      "icon": "征集信.png"
+    },
+    {
+      "id": 3002,
+      "name": "紧急调令",
+      "cat": "物料",
+      "quality": 3,
+      "icon": "紧急调令.png"
+    },
+    {
+      "id": 3003,
+      "name": "请调券",
+      "cat": "物料",
+      "quality": 4,
+      "icon": "请调券.png"
+    },
+    {
+      "id": 3004,
+      "name": "琳琅合券",
+      "cat": "物料",
+      "quality": 5,
+      "icon": "琳琅合券.png"
+    },
+    {
+      "id": 3102,
+      "name": "高级制造申请",
+      "cat": "物料",
+      "quality": 3,
+      "icon": "高级制造申请.png"
+    },
+    {
+      "id": 3103,
+      "name": "绝密制造申请",
+      "cat": "物料",
+      "quality": 4,
+      "icon": "绝密制造申请.png"
+    },
+    {
+      "id": 3104,
+      "name": "超律制造申请",
+      "cat": "物料",
+      "quality": 5,
+      "icon": "超律制造申请.png"
+    },
+    {
+      "id": 3105,
+      "name": "焕光珀片",
+      "cat": "物料",
+      "quality": 4,
+      "icon": "焕光珀片.png"
+    },
+    {
+      "id": 3106,
+      "name": "锁嵌珀片",
+      "cat": "物料",
+      "quality": 5,
+      "icon": "锁嵌珀片.png"
+    },
+    {
+      "id": 3107,
+      "name": "移星珀片",
+      "cat": "物料",
+      "quality": 5,
+      "icon": "移星珀片.png"
+    },
+    {
+      "id": 3205,
+      "name": "居家茶罐",
+      "cat": "物料",
+      "quality": 3,
+      "icon": "居家茶罐.png"
+    },
+    {
+      "id": 3210,
+      "name": "冬谷礼盒",
+      "cat": "物料",
+      "quality": 1,
+      "icon": "冬谷礼盒.png"
+    },
+    {
+      "id": 3212,
+      "name": "特殊冬谷礼盒",
+      "cat": "物料",
+      "quality": 2,
+      "icon": "特殊冬谷礼盒.png"
+    },
+    {
+      "id": 3213,
+      "name": "加密冬谷礼盒",
+      "cat": "物料",
+      "quality": 3,
+      "icon": "加密冬谷礼盒.png"
+    },
+    {
+      "id": 3214,
+      "name": "绝密冬谷礼盒",
+      "cat": "物料",
+      "quality": 4,
+      "icon": "绝密冬谷礼盒.png"
+    },
+    {
+      "id": 3220,
+      "name": "核定牌自选包I",
+      "cat": "物料",
+      "quality": "",
+      "icon": "核定牌自选包I.png"
+    },
+    {
+      "id": 3221,
+      "name": "核定牌自选包II",
+      "cat": "物料",
+      "quality": 1,
+      "icon": "核定牌自选包II.png"
+    },
+    {
+      "id": 3222,
+      "name": "核定牌自选包III",
+      "cat": "物料",
+      "quality": 2,
+      "icon": "核定牌自选包III.png"
+    },
+    {
+      "id": 3223,
+      "name": "核定牌自选包IV",
+      "cat": "物料",
+      "quality": 3,
+      "icon": "核定牌自选包IV.png"
+    },
+    {
+      "id": 3224,
+      "name": "核定牌自选包V",
+      "cat": "物料",
+      "quality": 4,
+      "icon": "核定牌自选包V.png"
+    },
+    {
+      "id": 3225,
+      "name": "考核自选包I",
+      "cat": "物料",
+      "quality": "",
+      "icon": "考核自选包I.png"
+    },
+    {
+      "id": 3226,
+      "name": "考核自选包II",
+      "cat": "物料",
+      "quality": 1,
+      "icon": "考核自选包II.png"
+    },
+    {
+      "id": 3227,
+      "name": "考核自选包III",
+      "cat": "物料",
+      "quality": 2,
+      "icon": "考核自选包III.png"
+    },
+    {
+      "id": 3228,
+      "name": "考核自选包IV",
+      "cat": "物料",
+      "quality": 3,
+      "icon": "考核自选包IV.png"
+    },
+    {
+      "id": 3229,
+      "name": "考核自选包V",
+      "cat": "物料",
+      "quality": 4,
+      "icon": "考核自选包V.png"
+    },
+    {
+      "id": 3251,
+      "name": "盈级装备匣·轻锐",
+      "cat": "物料",
+      "quality": 5,
+      "icon": "盈级装备匣·轻锐.png"
+    },
+    {
+      "id": 3252,
+      "name": "盈级装备匣·远击",
+      "cat": "物料",
+      "quality": 5,
+      "icon": "盈级装备匣·远击.png"
+    },
+    {
+      "id": 3253,
+      "name": "盈级装备匣·战略",
+      "cat": "物料",
+      "quality": 5,
+      "icon": "盈级装备匣·战略.png"
+    },
+    {
+      "id": 3254,
+      "name": "盈级装备匣·构术",
+      "cat": "物料",
+      "quality": 5,
+      "icon": "盈级装备匣·构术.png"
+    },
+    {
+      "id": 3255,
+      "name": "盈级装备匣·宿卫",
+      "cat": "物料",
+      "quality": 5,
+      "icon": "盈级装备匣·宿卫.png"
+    },
+    {
+      "id": 81000,
+      "name": "茶宠",
+      "cat": "物料",
+      "quality": 3,
+      "icon": "茶宠.png"
+    },
+    {
+      "id": 81001,
+      "name": "大麦茶",
+      "cat": "物料",
+      "quality": 3,
+      "icon": "大麦茶.png"
+    },
+    {
+      "id": 81002,
+      "name": "碧螺春",
+      "cat": "物料",
+      "quality": 3,
+      "icon": "碧螺春.png"
+    },
+    {
+      "id": 81003,
+      "name": "恩施玉露",
+      "cat": "物料",
+      "quality": 3,
+      "icon": "恩施玉露.png"
+    },
+    {
+      "id": 81004,
+      "name": "白毫银针",
+      "cat": "物料",
+      "quality": 3,
+      "icon": "白毫银针.png"
+    },
+    {
+      "id": 81005,
+      "name": "峨眉雪芽",
+      "cat": "物料",
+      "quality": 3,
+      "icon": "峨眉雪芽.png"
+    },
+    {
+      "id": 81006,
+      "name": "紫阳毛尖",
+      "cat": "物料",
+      "quality": 3,
+      "icon": "紫阳毛尖.png"
+    },
+    {
+      "id": 81007,
+      "name": "西湖龙井",
+      "cat": "物料",
+      "quality": 3,
+      "icon": "西湖龙井.png"
+    },
+    {
+      "id": 81008,
+      "name": "大吉岭茶",
+      "cat": "物料",
+      "quality": 3,
+      "icon": "大吉岭茶.png"
+    },
+    {
+      "id": 81009,
+      "name": "杏皮茶",
+      "cat": "物料",
+      "quality": 3,
+      "icon": "杏皮茶.png"
+    },
+    {
+      "id": 81010,
+      "name": "酥油茶",
+      "cat": "物料",
+      "quality": 3,
+      "icon": "酥油茶.png"
+    },
+    {
+      "id": 81011,
+      "name": "普洱茶",
+      "cat": "物料",
+      "quality": 3,
+      "icon": "普洱茶.png"
+    },
+    {
+      "id": 81012,
+      "name": "竹叶青",
+      "cat": "物料",
+      "quality": 3,
+      "icon": "竹叶青.png"
+    },
+    {
+      "id": 81013,
+      "name": "珍珠奶茶",
+      "cat": "物料",
+      "quality": 3,
+      "icon": "珍珠奶茶.png"
+    },
+    {
+      "id": 81014,
+      "name": "武夷岩茶",
+      "cat": "物料",
+      "quality": 3,
+      "icon": "武夷岩茶.png"
+    },
+    {
+      "id": 81015,
+      "name": "冰茶",
+      "cat": "物料",
+      "quality": 3,
+      "icon": "冰茶.png"
+    },
+    {
+      "id": 82001,
+      "name": "人文社科",
+      "cat": "物料",
+      "quality": 4,
+      "icon": "人文社科.png"
+    },
+    {
+      "id": 82002,
+      "name": "行业秘辛",
+      "cat": "物料",
+      "quality": 4,
+      "icon": "行业秘辛.png"
+    },
+    {
+      "id": 82003,
+      "name": "地方调研",
+      "cat": "物料",
+      "quality": 4,
+      "icon": "地方调研.png"
+    },
+    {
+      "id": 82004,
+      "name": "案件卷宗",
+      "cat": "物料",
+      "quality": 4,
+      "icon": "案件卷宗.png"
+    },
+    {
+      "id": 82005,
+      "name": "民间传说",
+      "cat": "物料",
+      "quality": 3,
+      "icon": "民间传说.png"
+    },
+    {
+      "id": 82006,
+      "name": "美味秘方",
+      "cat": "物料",
+      "quality": 3,
+      "icon": "美味秘方.png"
+    },
+    {
+      "id": 82007,
+      "name": "战斗技巧",
+      "cat": "物料",
+      "quality": 3,
+      "icon": "战斗技巧.png"
+    },
+    {
+      "id": 82008,
+      "name": "区域资讯",
+      "cat": "物料",
+      "quality": 3,
+      "icon": "区域资讯.png"
+    },
+    {
+      "id": 82009,
+      "name": "小道消息",
+      "cat": "物料",
+      "quality": 2,
+      "icon": "小道消息.png"
+    },
+    {
+      "id": 82010,
+      "name": "生活贴士",
+      "cat": "物料",
+      "quality": 2,
+      "icon": "生活贴士.png"
+    },
+    {
+      "id": 82011,
+      "name": "时事新闻",
+      "cat": "物料",
+      "quality": 2,
+      "icon": "时事新闻.png"
+    },
+    {
+      "id": 82012,
+      "name": "旅游指南",
+      "cat": "物料",
+      "quality": 2,
+      "icon": "旅游指南.png"
+    },
+    {
+      "id": 1,
+      "name": "多棱灰珀",
+      "cat": "票券",
+      "quality": 4,
+      "icon": "多棱灰珀.png"
+    },
+    {
+      "id": 2,
+      "name": "异形彩珀",
+      "cat": "票券",
+      "quality": 5,
+      "icon": "异形彩珀.png"
+    },
+    {
+      "id": 3,
+      "name": "冬谷币",
+      "cat": "票券",
+      "quality": 2,
+      "icon": "冬谷币.png"
+    },
+    {
+      "id": 8,
+      "name": "衣装券",
+      "cat": "票券",
+      "quality": 4,
+      "icon": "衣装券.png"
+    },
+    {
+      "id": 11,
+      "name": "简要分析报告",
+      "cat": "票券",
+      "quality": 2,
+      "icon": "简要分析报告.png"
+    },
+    {
+      "id": 12,
+      "name": "进阶分析报告",
+      "cat": "票券",
+      "quality": 3,
+      "icon": "进阶分析报告.png"
+    },
+    {
+      "id": 13,
+      "name": "机密分析报告",
+      "cat": "票券",
+      "quality": 4,
+      "icon": "机密分析报告.png"
+    },
+    {
+      "id": 16,
+      "name": "石墨纪念币",
+      "cat": "票券",
+      "quality": 3,
+      "icon": "石墨纪念币.png"
+    },
+    {
+      "id": 18,
+      "name": "研学报告·山水画境",
+      "cat": "票券",
+      "quality": 3,
+      "icon": "研学报告·山水画境.png"
+    },
+    {
+      "id": 19,
+      "name": "游历实绩",
+      "cat": "票券",
+      "quality": 3,
+      "icon": "游历实绩.png"
+    },
+    {
+      "id": 20,
+      "name": "研学通行证",
+      "cat": "票券",
+      "quality": 3,
+      "icon": "研学通行证.png"
+    },
+    {
+      "id": 21,
+      "name": "冬菇奖章",
+      "cat": "票券",
+      "quality": 3,
+      "icon": "冬菇奖章.png"
+    },
+    {
+      "id": 23,
+      "name": "请调积分",
+      "cat": "票券",
+      "quality": 3,
+      "icon": "请调积分.png"
+    },
+    {
+      "id": 24,
+      "name": "家具蓝图",
+      "cat": "票券",
+      "quality": 4,
+      "icon": "家具蓝图.png"
+    },
+    {
+      "id": 26,
+      "name": "集训闪卡",
+      "cat": "票券",
+      "quality": 4,
+      "icon": "集训闪卡.png"
+    },
+    {
+      "id": 27,
+      "name": "研学报告·金银纪行",
+      "cat": "票券",
+      "quality": 3,
+      "icon": "研学报告·金银纪行.png"
+    },
+    {
+      "id": 28,
+      "name": "游历符牒",
+      "cat": "票券",
+      "quality": 3,
+      "icon": "游历符牒.png"
+    },
+    {
+      "id": 29,
+      "name": "研习证明",
+      "cat": "票券",
+      "quality": 3,
+      "icon": "研习证明.png"
+    },
+    {
+      "id": 5122,
+      "name": "友情币",
+      "cat": "票券",
+      "quality": 3,
+      "icon": "友情币.png"
+    },
+    {
+      "id": 1001,
+      "name": "宿卫核定牌I",
+      "cat": "资源",
+      "quality": "",
+      "icon": "宿卫核定牌I.png"
+    },
+    {
+      "id": 1002,
+      "name": "宿卫核定牌II",
+      "cat": "资源",
+      "quality": 1,
+      "icon": "宿卫核定牌II.png"
+    },
+    {
+      "id": 1003,
+      "name": "宿卫核定牌III",
+      "cat": "资源",
+      "quality": 2,
+      "icon": "宿卫核定牌III.png"
+    },
+    {
+      "id": 1004,
+      "name": "宿卫核定牌IV",
+      "cat": "资源",
+      "quality": 3,
+      "icon": "宿卫核定牌IV.png"
+    },
+    {
+      "id": 1005,
+      "name": "宿卫核定牌V",
+      "cat": "资源",
+      "quality": 4,
+      "icon": "宿卫核定牌V.png"
+    },
+    {
+      "id": 1011,
+      "name": "轻锐核定牌I",
+      "cat": "资源",
+      "quality": "",
+      "icon": "轻锐核定牌I.png"
+    },
+    {
+      "id": 1012,
+      "name": "轻锐核定牌II",
+      "cat": "资源",
+      "quality": 1,
+      "icon": "轻锐核定牌II.png"
+    },
+    {
+      "id": 1013,
+      "name": "轻锐核定牌III",
+      "cat": "资源",
+      "quality": 2,
+      "icon": "轻锐核定牌III.png"
+    },
+    {
+      "id": 1014,
+      "name": "轻锐核定牌IV",
+      "cat": "资源",
+      "quality": 3,
+      "icon": "轻锐核定牌IV.png"
+    },
+    {
+      "id": 1015,
+      "name": "轻锐核定牌V",
+      "cat": "资源",
+      "quality": 4,
+      "icon": "轻锐核定牌V.png"
+    },
+    {
+      "id": 1021,
+      "name": "远击核定牌I",
+      "cat": "资源",
+      "quality": "",
+      "icon": "远击核定牌I.png"
+    },
+    {
+      "id": 1022,
+      "name": "远击核定牌II",
+      "cat": "资源",
+      "quality": 1,
+      "icon": "远击核定牌II.png"
+    },
+    {
+      "id": 1023,
+      "name": "远击核定牌III",
+      "cat": "资源",
+      "quality": 2,
+      "icon": "远击核定牌III.png"
+    },
+    {
+      "id": 1024,
+      "name": "远击核定牌IV",
+      "cat": "资源",
+      "quality": 3,
+      "icon": "远击核定牌IV.png"
+    },
+    {
+      "id": 1025,
+      "name": "远击核定牌V",
+      "cat": "资源",
+      "quality": 4,
+      "icon": "远击核定牌V.png"
+    },
+    {
+      "id": 1031,
+      "name": "构术核定牌I",
+      "cat": "资源",
+      "quality": "",
+      "icon": "构术核定牌I.png"
+    },
+    {
+      "id": 1032,
+      "name": "构术核定牌II",
+      "cat": "资源",
+      "quality": 1,
+      "icon": "构术核定牌II.png"
+    },
+    {
+      "id": 1033,
+      "name": "构术核定牌III",
+      "cat": "资源",
+      "quality": 2,
+      "icon": "构术核定牌III.png"
+    },
+    {
+      "id": 1034,
+      "name": "构术核定牌IV",
+      "cat": "资源",
+      "quality": 3,
+      "icon": "构术核定牌IV.png"
+    },
+    {
+      "id": 1035,
+      "name": "构术核定牌V",
+      "cat": "资源",
+      "quality": 4,
+      "icon": "构术核定牌V.png"
+    },
+    {
+      "id": 1041,
+      "name": "战略核定牌I",
+      "cat": "资源",
+      "quality": "",
+      "icon": "战略核定牌I.png"
+    },
+    {
+      "id": 1042,
+      "name": "战略核定牌II",
+      "cat": "资源",
+      "quality": 1,
+      "icon": "战略核定牌II.png"
+    },
+    {
+      "id": 1043,
+      "name": "战略核定牌III",
+      "cat": "资源",
+      "quality": 2,
+      "icon": "战略核定牌III.png"
+    },
+    {
+      "id": 1044,
+      "name": "战略核定牌IV",
+      "cat": "资源",
+      "quality": 3,
+      "icon": "战略核定牌IV.png"
+    },
+    {
+      "id": 1045,
+      "name": "战略核定牌V",
+      "cat": "资源",
+      "quality": 4,
+      "icon": "战略核定牌V.png"
+    },
+    {
+      "id": 1051,
+      "name": "资质证明I",
+      "cat": "资源",
+      "quality": "",
+      "icon": "资质证明I.png"
+    },
+    {
+      "id": 1052,
+      "name": "资质证明II",
+      "cat": "资源",
+      "quality": 1,
+      "icon": "资质证明II.png"
+    },
+    {
+      "id": 1053,
+      "name": "资质证明III",
+      "cat": "资源",
+      "quality": 2,
+      "icon": "资质证明III.png"
+    },
+    {
+      "id": 1054,
+      "name": "资质证明IV",
+      "cat": "资源",
+      "quality": 3,
+      "icon": "资质证明IV.png"
+    },
+    {
+      "id": 1055,
+      "name": "资质证明V",
+      "cat": "资源",
+      "quality": 4,
+      "icon": "资质证明V.png"
+    },
+    {
+      "id": 1060,
+      "name": "颜料-墨块",
+      "cat": "资源",
+      "quality": "",
+      "icon": "颜料-墨块.png"
+    },
+    {
+      "id": 1061,
+      "name": "颜料-丙烯颜料",
+      "cat": "资源",
+      "quality": 1,
+      "icon": "颜料-丙烯颜料.png"
+    },
+    {
+      "id": 1062,
+      "name": "颜料-大漆",
+      "cat": "资源",
+      "quality": 2,
+      "icon": "颜料-大漆.png"
+    },
+    {
+      "id": 1063,
+      "name": "颜料-矿物颜料",
+      "cat": "资源",
+      "quality": 3,
+      "icon": "颜料-矿物颜料.png"
+    },
+    {
+      "id": 1064,
+      "name": "刷子-板刷",
+      "cat": "资源",
+      "quality": "",
+      "icon": "刷子-板刷.png"
+    },
+    {
+      "id": 1065,
+      "name": "刷子-羊毛刷",
+      "cat": "资源",
+      "quality": 1,
+      "icon": "刷子-羊毛刷.png"
+    },
+    {
+      "id": 1066,
+      "name": "刷子-紫毫",
+      "cat": "资源",
+      "quality": 2,
+      "icon": "刷子-紫毫.png"
+    },
+    {
+      "id": 1067,
+      "name": "刷子-棕刷",
+      "cat": "资源",
+      "quality": 3,
+      "icon": "刷子-棕刷.png"
+    },
+    {
+      "id": 1068,
+      "name": "粘合-浆糊",
+      "cat": "资源",
+      "quality": "",
+      "icon": "粘合-浆糊.png"
+    },
+    {
+      "id": 1069,
+      "name": "粘合-树脂胶",
+      "cat": "资源",
+      "quality": 1,
+      "icon": "粘合-树脂胶.png"
+    },
+    {
+      "id": 1070,
+      "name": "粘合-骨胶",
+      "cat": "资源",
+      "quality": 2,
+      "icon": "粘合-骨胶.png"
+    },
+    {
+      "id": 1071,
+      "name": "粘合-海藻胶",
+      "cat": "资源",
+      "quality": 3,
+      "icon": "粘合-海藻胶.png"
+    },
+    {
+      "id": 1072,
+      "name": "模型-蜡块",
+      "cat": "资源",
+      "quality": "",
+      "icon": "模型-蜡块.png"
+    },
+    {
+      "id": 1073,
+      "name": "模型-石膏",
+      "cat": "资源",
+      "quality": 1,
+      "icon": "模型-石膏.png"
+    },
+    {
+      "id": 1074,
+      "name": "模型-硅橡胶",
+      "cat": "资源",
+      "quality": 2,
+      "icon": "模型-硅橡胶.png"
+    },
+    {
+      "id": 1075,
+      "name": "模型-粘土",
+      "cat": "资源",
+      "quality": 3,
+      "icon": "模型-粘土.png"
+    },
+    {
+      "id": 1076,
+      "name": "修饰-水砂纸",
+      "cat": "资源",
+      "quality": "",
+      "icon": "修饰-水砂纸.png"
+    },
+    {
+      "id": 1077,
+      "name": "修饰-金刚砂",
+      "cat": "资源",
+      "quality": 1,
+      "icon": "修饰-金刚砂.png"
+    },
+    {
+      "id": 1078,
+      "name": "修饰-氮化硅",
+      "cat": "资源",
+      "quality": 2,
+      "icon": "修饰-氮化硅.png"
+    },
+    {
+      "id": 1079,
+      "name": "修饰-微晶蜡",
+      "cat": "资源",
+      "quality": 3,
+      "icon": "修饰-微晶蜡.png"
+    },
+    {
+      "id": 1080,
+      "name": "原料-高岭土",
+      "cat": "资源",
+      "quality": "",
+      "icon": "原料-高岭土.png"
+    },
+    {
+      "id": 1081,
+      "name": "原料-铜液",
+      "cat": "资源",
+      "quality": 1,
+      "icon": "原料-铜液.png"
+    },
+    {
+      "id": 1082,
+      "name": "原料-绫绢",
+      "cat": "资源",
+      "quality": 2,
+      "icon": "原料-绫绢.png"
+    },
+    {
+      "id": 1083,
+      "name": "原料-宝石",
+      "cat": "资源",
+      "quality": 3,
+      "icon": "原料-宝石.png"
+    },
+    {
+      "id": 1084,
+      "name": "拼合手法",
+      "cat": "资源",
+      "quality": 4,
+      "icon": "拼合手法.png"
+    },
+    {
+      "id": 1085,
+      "name": "封护指南",
+      "cat": "资源",
+      "quality": 4,
+      "icon": "封护指南.png"
+    },
+    {
+      "id": 1086,
+      "name": "矫形方案",
+      "cat": "资源",
+      "quality": 4,
+      "icon": "矫形方案.png"
+    },
+    {
+      "id": 1087,
+      "name": "补缺措施",
+      "cat": "资源",
+      "quality": 4,
+      "icon": "补缺措施.png"
+    },
+    {
+      "id": 1088,
+      "name": "做旧方法",
+      "cat": "资源",
+      "quality": 4,
+      "icon": "做旧方法.png"
+    },
+    {
+      "id": 1089,
+      "name": "损害分析",
+      "cat": "资源",
+      "quality": 4,
+      "icon": "损害分析.png"
+    },
+    {
+      "id": 1090,
+      "name": "游目之趣",
+      "cat": "资源",
+      "quality": 5,
+      "icon": "游目之趣.png"
+    },
+    {
+      "id": 1091,
+      "name": "骋怀之乐",
+      "cat": "资源",
+      "quality": 5,
+      "icon": "骋怀之乐.png"
+    },
+    {
+      "id": 1092,
+      "name": "所遇之欣",
+      "cat": "资源",
+      "quality": 5,
+      "icon": "所遇之欣.png"
+    },
+    {
+      "id": 1093,
+      "name": "建立档案",
+      "cat": "资源",
+      "quality": 4,
+      "icon": "建立档案.png"
+    },
+    {
+      "id": 2401,
+      "name": "鎏金石墨条",
+      "cat": "资源",
+      "quality": 4,
+      "icon": "鎏金石墨条.png"
+    },
+    {
+      "id": 2402,
+      "name": "錾银石墨条",
+      "cat": "资源",
+      "quality": 3,
+      "icon": "錾银石墨条.png"
+    },
+    {
+      "id": 2403,
+      "name": "饰铜石墨条",
+      "cat": "资源",
+      "quality": 2,
+      "icon": "饰铜石墨条.png"
+    },
+    {
+      "id": 2404,
+      "name": "鳞钻石墨条",
+      "cat": "资源",
+      "quality": 5,
+      "icon": "鳞钻石墨条.png"
+    },
+    {
+      "id": 2460,
+      "name": "I型拟态钢材",
+      "cat": "资源",
+      "quality": 1,
+      "icon": "I型拟态钢材.png"
+    },
+    {
+      "id": 2461,
+      "name": "Ⅱ型拟态钢材",
+      "cat": "资源",
+      "quality": 2,
+      "icon": "Ⅱ型拟态钢材.png"
+    },
+    {
+      "id": 2462,
+      "name": "Ⅲ型拟态钢材",
+      "cat": "资源",
+      "quality": 3,
+      "icon": "Ⅲ型拟态钢材.png"
+    }
+  ]
+}

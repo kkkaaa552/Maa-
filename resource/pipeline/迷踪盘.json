@@ -1,0 +1,329 @@
+{
+    "$schema": "https://raw.githubusercontent.com/MaaXYZ/MaaFramework/main/schema/pipeline.schema.json",
+    "迷踪盘": {
+        "desc": "入口驱动节点：轮询「大厅 → 派遣公司 → 茶室 → 关卡选择」四级页面断言，当前在哪一级就做那一步。next 顺序即优先级：关卡页放最前，已经进了就不再乱点。末尾的「点空白」是兜底——气泡浮窗挡住页面时，先点一下空地把它关掉再重试。",
+        "recognition": "DirectHit",
+        "action": "DoNothing",
+        "pre_delay": 500,
+        "timeout": 45000,
+        "next": [
+            "迷踪盘.关卡页",
+            "迷踪盘.点迷",
+            "迷踪盘.点店",
+            "迷踪盘.去派遣",
+            "迷踪盘.点空白"
+        ],
+        "on_error": [
+            "迷踪盘.收尾"
+        ]
+    },
+    "迷踪盘.关卡页": {
+        "desc": "关卡选择页就绪判据兼断言：左上第一张「体验关卡」卡片标签，恒在。实测本页 0.9889 / 茶室页 0.6263 / 棋盘 0.4995，阈值 0.8 分得开。",
+        "recognition": "TemplateMatch",
+        "template": "迷踪盘.体验关卡.png",
+        "roi": [
+            150,
+            290,
+            190,
+            80
+        ],
+        "threshold": 0.8,
+        "action": "DoNothing",
+        "next": [
+            "迷踪盘.选关"
+        ],
+        "on_error": [
+            "迷踪盘"
+        ]
+    },
+    "迷踪盘.选关": {
+        "desc": "点关卡卡片。target 默认「体验关卡」(231,270)，option「迷踪盘关卡」会覆盖这里。点卡片只是选中，不会直接进关。",
+        "recognition": "DirectHit",
+        "action": "Click",
+        "target": [
+            231,
+            270
+        ],
+        "post_delay": 1200,
+        "max_hit": 4,
+        "next": [
+            "迷踪盘.前往"
+        ],
+        "on_error": [
+            "迷踪盘.关卡页"
+        ]
+    },
+    "迷踪盘.前往": {
+        "desc": "选中卡片后出现的红色「前往」条（模板 222x41，同屏 1.0）。点它才真正进棋盘。",
+        "recognition": "TemplateMatch",
+        "template": "迷踪盘.前往.png",
+        "roi": [
+            700,
+            460,
+            380,
+            130
+        ],
+        "threshold": 0.8,
+        "action": "Click",
+        "target": true,
+        "post_delay": 3000,
+        "next": [
+            "迷踪盘.求解"
+        ],
+        "on_error": [
+            "迷踪盘.选关"
+        ]
+    },
+    "迷踪盘.求解": {
+        "desc": "Custom 迷踪盘求解：读大盘棋子 + 左侧小盘解密点 → BFS 最短点击序列 → 每点一次重新截图核对，不符就按实测状态重规划。成功返回时「完成」遮罩已弹出。param max_steps 是硬上限，超了判失败。",
+        "recognition": "DirectHit",
+        "action": "Custom",
+        "custom_action": "迷踪盘求解",
+        "custom_action_param": {
+            "max_steps": 24
+        },
+        "post_delay": 800,
+        "next": [
+            "迷踪盘.完成"
+        ],
+        "on_error": [
+            "迷踪盘.收尾"
+        ]
+    },
+    "迷踪盘.完成": {
+        "desc": "通关遮罩上的「完成」书法字。点它返回关卡选择页。timeout 给 30s：最后一手到遮罩淡入之间有一段动画。即便没读到也不影响收尾，on_error 同样走 迷踪盘.收尾。",
+        "recognition": "TemplateMatch",
+        "template": "迷踪盘.完成.png",
+        "roi": [
+            650,
+            320,
+            420,
+            220
+        ],
+        "threshold": 0.7,
+        "action": "Click",
+        "target": true,
+        "post_delay": 2000,
+        "timeout": 30000,
+        "next": [
+            "迷踪盘.收尾"
+        ],
+        "on_error": [
+            "迷踪盘.收尾"
+        ]
+    },
+    "迷踪盘.收尾": {
+        "desc": "收尾循环的驱动节点：本身不做任何事，只把「当前处在哪一页」交给下面 5 个页面断言去判，命中的那个负责退一级并把控制权交回本节点，一直循环到大厅断言命中为止。为什么要这么写：实测（maafw.log）next 列表的等待预算是**上一个成功节点的 timeout**，不是候选节点自己的 timeout——`Task timeout [pretask.name=迷踪盘.收尾] [duration_since(start_clock)=20330ms] [pretask.reco_timeout=20000ms]`，所以给候选写 timeout:3000 完全不起作用，单候选的 next 会一路等到 20s 默认值再以 Task timeout 失败。把 5 个断言并进同一个 next 列表后，每轮按顺序试一遍，当前页那个当轮就命中，不会白等。",
+        "recognition": "DirectHit",
+        "action": "DoNothing",
+        "pre_delay": 500,
+        "timeout": 40000,
+        "next": [
+            "迷踪盘.收尾.完成",
+            "迷踪盘.收尾.棋盘",
+            "迷踪盘.收尾.退关卡页",
+            "迷踪盘.收尾.退茶室",
+            "迷踪盘.收尾.退派遣",
+            "迷踪盘.收尾.大厅"
+        ]
+    },
+    "迷踪盘.收尾.完成": {
+        "desc": "仍在通关遮罩上（求解成功但 迷踪盘.完成 节点异常时会出现）：点「完成」回关卡选择页，再交回驱动节点。max_hit 2 兜住重复点击。",
+        "recognition": "TemplateMatch",
+        "template": "迷踪盘.完成.png",
+        "roi": [
+            650,
+            320,
+            420,
+            220
+        ],
+        "threshold": 0.7,
+        "action": "Click",
+        "target": true,
+        "post_delay": 2200,
+        "max_hit": 2,
+        "timeout": 40000,
+        "next": [
+            "迷踪盘.收尾"
+        ]
+    },
+    "迷踪盘.收尾.退关卡页": {
+        "desc": "在关卡选择页（左上体验关卡卡片可见）：点左上返回退到茶室，再交回驱动节点。max_hit 3 防死循环。",
+        "recognition": "TemplateMatch",
+        "template": "迷踪盘.体验关卡.png",
+        "roi": [
+            150,
+            290,
+            190,
+            80
+        ],
+        "threshold": 0.8,
+        "action": "Click",
+        "target": [
+            60,
+            35
+        ],
+        "post_delay": 1800,
+        "max_hit": 3,
+        "timeout": 40000,
+        "next": [
+            "迷踪盘.收尾"
+        ]
+    },
+    "迷踪盘.收尾.退茶室": {
+        "desc": "在茶室页（左侧圆形徽记「迷」可见）：点左上返回退到派遣公司页，再交回驱动节点。",
+        "recognition": "TemplateMatch",
+        "template": "迷踪盘.入口.png",
+        "roi": [
+            380,
+            150,
+            260,
+            250
+        ],
+        "threshold": 0.8,
+        "action": "Click",
+        "target": [
+            60,
+            35
+        ],
+        "post_delay": 1800,
+        "max_hit": 3,
+        "timeout": 40000,
+        "next": [
+            "迷踪盘.收尾"
+        ]
+    },
+    "迷踪盘.收尾.退派遣": {
+        "desc": "在派遣公司页（「茶室」邮票招牌可见）：点左上返回回大厅，再交回驱动节点。",
+        "recognition": "TemplateMatch",
+        "template": "迷踪盘.茶室.png",
+        "roi": [
+            900,
+            360,
+            380,
+            300
+        ],
+        "threshold": 0.8,
+        "action": "Click",
+        "target": [
+            60,
+            35
+        ],
+        "post_delay": 1800,
+        "max_hit": 3,
+        "timeout": 40000,
+        "next": [
+            "迷踪盘.收尾"
+        ]
+    },
+    "迷踪盘.收尾.大厅": {
+        "desc": "终止条件：大厅右下角「任务」按钮 OCR 命中即收尾完成（next 为空 = 任务正常结束）。这一项必须放在驱动节点 next 列表的最后，前面 4 项都不中时才会轮到它，所以在关卡页/茶室/派遣页上不会误判成已回大厅。",
+        "recognition": "OCR",
+        "roi": [
+            1120,
+            630,
+            150,
+            70
+        ],
+        "expected": [
+            "任务",
+            "任"
+        ],
+        "action": "DoNothing",
+        "timeout": 40000,
+        "next": []
+    },
+    "迷踪盘.去派遣": {
+        "desc": "大厅右下「派遣公司」按钮（OCR）。roi 收在右上角，避免与派遣公司页左上角同名标题混淆。",
+        "recognition": "OCR",
+        "roi": [
+            1080,
+            420,
+            200,
+            80
+        ],
+        "expected": [
+            "派遣公司"
+        ],
+        "action": "Click",
+        "post_delay": 2200,
+        "max_hit": 4,
+        "next": [
+            "迷踪盘"
+        ]
+    },
+    "迷踪盘.点店": {
+        "desc": "派遣公司页左下那张「茶室」邮票招牌。模板实测：同屏 1.0，其他画面 ≤0.39。",
+        "recognition": "TemplateMatch",
+        "template": "迷踪盘.茶室.png",
+        "roi": [
+            900,
+            360,
+            380,
+            300
+        ],
+        "threshold": 0.8,
+        "action": "Click",
+        "target": true,
+        "post_delay": 2500,
+        "max_hit": 4,
+        "next": [
+            "迷踪盘"
+        ]
+    },
+    "迷踪盘.点迷": {
+        "desc": "茶室页圆形徽记上的「迷」（迷踪盘入口）。实测同屏 1.0、其他画面 ≤0.39。必须 target:true 跟随命中位置——徽记与旁边数量气泡都会浮动，固定坐标会点到气泡上。",
+        "recognition": "TemplateMatch",
+        "template": "迷踪盘.入口.png",
+        "roi": [
+            380,
+            150,
+            260,
+            250
+        ],
+        "threshold": 0.8,
+        "action": "Click",
+        "target": true,
+        "post_delay": 2200,
+        "max_hit": 6,
+        "next": [
+            "迷踪盘"
+        ]
+    },
+    "迷踪盘.点空白": {
+        "desc": "兜底：点茶室页左下空地，关掉误点开的物品浮窗（请调券/招募券）。排在其他候选之后，只有前面全不命中才会执行。",
+        "recognition": "DirectHit",
+        "action": "Click",
+        "target": [
+            200,
+            650
+        ],
+        "post_delay": 700,
+        "max_hit": 4,
+        "next": [
+            "迷踪盘"
+        ]
+    },
+    "迷踪盘.收尾.棋盘": {
+        "desc": "棋盘页出口：断言当前确实在棋盘上（右下「悔」按钮做模板，跨页 NCC 棋盘 1.0000 / 关卡选择 0.2424），然后点左上返回箭头 (60,35) 回关卡选择页，把控制权交回收尾驱动节点。补这个节点的原因：求解器一旦没真正通关，盘面就停在棋盘页，而原来的 5 个收尾候选在这一页全部不匹配，只能等超时失败。",
+        "recognition": "TemplateMatch",
+        "roi": [
+            440,
+            540,
+            130,
+            110
+        ],
+        "template": "迷踪盘.棋盘.png",
+        "threshold": 0.8,
+        "action": "Click",
+        "target": [
+            60,
+            35
+        ],
+        "post_delay": 1800,
+        "max_hit": 3,
+        "next": [
+            "迷踪盘.收尾"
+        ]
+    }
+}

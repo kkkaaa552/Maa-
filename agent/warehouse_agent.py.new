@@ -1,0 +1,259 @@
+"""物华弥新 MAA · Agent 侧自定义动作
+
+被 MFAAvalonia 用 `child_exec` 拉起（见 interface.json 的 agent 段），
+identifier 由 Client 作为第一个命令行参数传入。
+
+两个自定义动作：
+- 仓库抓取：逐页截图 → wh_scan 识别 → 合并进 data/warehouse/*.json
+- 仓库快照：把 data/warehouse/*.json 渲染成 report/仓库快照.md（面板任务说明用）
+
+出口只有 Markdown 一份（用户 2026-11-22 定：可浏览的 HTML 图墙不做）。
+
+本地手工验证（不需要 Client）：
+    .venv\\Scripts\\python.exe agent\\warehouse_agent.py --selftest
+"""
+
+from __future__ import annotations
+
+import hashlib
+import json
+import sys
+import traceback
+from datetime import datetime
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+REPORT_DIR = ROOT / "report"
+LOG_PATH = ROOT / "debug" / "wh_agent.log"
+
+sys.path.insert(0, str(ROOT / "tools"))
+
+
+def log(msg: str) -> None:
+    line = f"[{datetime.now():%Y-%m-%d %H:%M:%S}] {msg}"
+    print(line, flush=True)
+    try:
+        LOG_PATH.parent.mkdir(parents=True, exist_ok=True)
+        with LOG_PATH.open("a", encoding="utf-8") as f:
+            f.write(line + "\n")
+    except Exception:
+        pass
+
+
+def parse_param(raw) -> dict:
+    """把 custom_action_param 解析成 dict。
+
+    坑（2026-11-22 13:25 实跑踩到）：MaaFramework 传给 agent 的不是 pipeline 里那个
+    字符串本身，而是它的 JSON 编码 —— 字符串参数会多包一层引号（`"{\\"cat\\": \\"物料\\"}"`），
+    没有参数时会传 `null` 字符串。所以只解一次 json 会得到 str 或 None，
+    后面 `param.get` 直接 AttributeError，任务就「切到物料页 → 抓取失败 → 跳 on_error 回主页」。
+    这里循环解到 dict 为止（最多 3 层）。
+    """
+    v = raw
+    for _ in range(5):
+        if isinstance(v, dict):
+            return v
+        if v is None:
+            return {}
+        if isinstance(v, (bytes, bytearray)):
+            v = v.decode("utf-8", "replace")
+            continue
+        if isinstance(v, str):
+            t = v.strip()
+            if not t:
+                return {}
+            try:
+                v = json.loads(t)
+            except Exception:
+                log(f"参数不是合法 JSON，按空参处理：{raw!r}")
+                return {}
+            continue
+        return {}
+    return {}
+
+
+def build_markdown(docs: list[dict]) -> str:
+    """把识别结果写成 Markdown，供任务说明面板显示。
+
+    用户 2026-11-22 定：面板里只要「分类 + 图标 + 名字 + 数量 + 等级」，不要格数/种数/时间，
+    也不要路径行 —— 所以这里只返回网格，什么都不追加。
+    """
+    import wh_report
+
+    return wh_report.render_md_grid(docs, wh_report.icon_index(),
+                                    wh_report.catalog_index(), wh_report.alias_index())
+
+
+CAPTURE_FAILS: list[str] = []    # 本轮抓取失败记录：任何一页失败，最后的快照就必须判失败
+LAST_SHOT: dict = {}             # 每个分类上一屏的截图（np 数组），第二屏合并时用来量位移
+
+
+def make_report(param: dict) -> tuple[bool, str]:
+    """只生成 Markdown 面板（report/仓库快照.md）。返回 (是否成功, 说明)。"""
+    import wh_report  # tools/wh_report.py
+
+    param = parse_param(param)               # 无参调用时 param 可能是 None
+    if CAPTURE_FAILS:
+        # 有一页没抓到：此时 data/warehouse 里是上一轮的旧数据，
+        # 再生成一份「看起来正常」的报告就是在骗人，必须让任务以失败结束。
+        return False, "抓取失败：" + "；".join(CAPTURE_FAILS)
+    docs = wh_report.load(wh_report.CATS)
+    if not docs:
+        return False, "data/warehouse 下没有可用的仓库数据（先跑一次仓库识别）"
+
+    md = build_markdown(docs)
+    REPORT_DIR.mkdir(parents=True, exist_ok=True)
+    md_path = REPORT_DIR / "仓库快照.md"
+    md_path.write_text(md, encoding="utf-8")
+
+    kinds = len({line.split("**")[1] for line in md.splitlines() if "**" in line})
+    msg = f"面板 {md_path.name} {md_path.stat().st_size:,} B · {kinds} 张卡片"
+    log(msg)
+    return True, msg
+
+
+def _screencap(context, cat: str, tag: str = ""):
+    """抓一屏存到 debug/shots/ 并返回 BGR 数组（失败返回 None）。"""
+    import cv2
+    import numpy as np
+
+    try:
+        buf = context.tasker.controller.post_screencap().wait().get()
+    except Exception:
+        log("截图失败：\n" + traceback.format_exc())
+        return None
+    if buf is None:
+        log("截图返回空")
+        return None
+    shot_dir = ROOT / "debug" / "shots"
+    shot_dir.mkdir(parents=True, exist_ok=True)
+    shot = shot_dir / f"wh-live-{cat}{tag}-{datetime.now():%Y%m%d-%H%M%S}.png"
+    try:
+        shot.write_bytes(bytes(buf))
+    except Exception:
+        log("截图落盘失败：\n" + traceback.format_exc())
+    arr = np.frombuffer(bytes(buf), dtype=np.uint8)
+    return cv2.imdecode(arr, cv2.IMREAD_COLOR)
+
+
+def capture(param, context) -> tuple[bool, str]:
+    """抓一个分类页的全部内容（慢滑翻到底，按位移合并）。"""
+    import time
+
+    import wh_scan as W
+
+    param = parse_param(param)
+    cat = param.get("cat") or "物料"
+    rows = int(param.get("rows") or 4)
+    max_scroll = int(param.get("scroll") or 8)
+    out = ROOT / "data" / "warehouse" / f"{cat}.json"
+
+    img = _screencap(context, cat)
+    if img is None:
+        msg = f"{cat} 第一屏没抓到"
+        CAPTURE_FAILS.append(msg)
+        return False, msg
+
+    ref_phase = W.row_phase(img)[0]
+    doc = W.scan_image(img, cat, rows, "live-1", out, verbose=False)
+    prev = img
+    cum_px = 0
+    ctl = context.tasker.controller
+    for i in range(max_scroll):
+        ctl.post_swipe(*W.SCROLL_BEGIN, *W.SCROLL_END, W.SCROLL_MS).wait()
+        time.sleep(1.0)
+        nxt = _screencap(context, cat, f"-s{i + 2}")
+        if nxt is None:
+            msg = f"{cat} 第{i + 2}屏没抓到"
+            CAPTURE_FAILS.append(msg)
+            return False, msg
+        shift, match, sim = W.align(prev, nxt)
+        if abs(shift) < W.BOTTOM_PX:
+            break
+        if sim < W.SAME_PAGE_MIN:
+            msg = f"{cat} 第{i + 2}屏整片相似 {sim:.3f} 不通过（不是同一页）"
+            CAPTURE_FAILS.append(msg)
+            return False, msg
+        cum_px += shift
+        phi = W.row_phase(nxt)[0]
+        dy = W.phase_dy(ref_phase, phi)
+        rows_offset = int(round((cum_px - dy) / W.PY))
+        feed = nxt if dy == 0 else W.shift_image(nxt, dy)
+        d2 = W.scan_image(feed, cat, rows, f"live-{i + 2}", None,
+                          verbose=False, row_offset=rows_offset)
+        doc = W.merge_into(out, d2, nxt, prev, pre=(shift, match, sim),
+                           offset_rows=rows_offset)
+        prev = nxt
+
+    cells = doc.get("cells") or []
+    stat = {s: sum(1 for c in cells if c.get("status") == s)
+            for s in ("hit", "uncertain", "empty")}
+    msg = f"{cat} 抓到 {len(cells)} 格 {stat}"
+    log(msg)
+    return True, msg
+
+
+def register() -> None:
+    from maa.agent.agent_server import AgentServer
+    from maa.custom_action import CustomAction
+
+    @AgentServer.custom_action("仓库抓取")
+    class CaptureWarehouse(CustomAction):
+        def run(self, context, argv) -> bool:
+            try:
+                ok, msg = capture(argv.custom_action_param, context)
+            except Exception:
+                msg = "仓库抓取异常：\n" + traceback.format_exc()
+                CAPTURE_FAILS.append(f"{msg.splitlines()[-1]}")
+                log(msg)
+                ok = False
+            log(f"仓库抓取 {'成功' if ok else '失败'}：{msg.splitlines()[0] if msg else ''}")
+            return CustomAction.RunResult(success=bool(ok))
+
+    @AgentServer.custom_action("仓库快照")
+    class SnapshotWarehouse(CustomAction):
+        def run(self, context, argv) -> bool:
+            try:
+                ok, msg = make_report(argv.custom_action_param)
+            except Exception:
+                msg = "仓库快照异常：\n" + traceback.format_exc()
+                log(msg)
+                ok = False
+            log(f"仓库快照 {'成功' if ok else '失败'}：{msg.splitlines()[0] if msg else ''}")
+            return CustomAction.RunResult(success=bool(ok))
+
+
+def code_fingerprint() -> str:
+    parts = []
+    for rel in ("tools/wh_scan.py", "tools/wh_report.py", "agent/warehouse_agent.py"):
+        p = ROOT / rel
+        if not p.exists():
+            continue
+        st = p.stat()
+        h = hashlib.sha256(p.read_bytes()).hexdigest()[:8]
+        parts.append(f"{p.name}: {datetime.fromtimestamp(st.st_mtime):%Y-%m-%d %H:%M:%S}"
+                     f" · {st.st_size:,} B · sha {h}")
+    return "代码 " + " | ".join(parts)
+
+
+def main(argv: list[str]) -> int:
+    log("=" * 70)
+    log(code_fingerprint())
+    if "--selftest" in argv:
+        ok, msg = make_report({})
+        log(f"[selftest] {'OK' if ok else 'FAIL'} {msg}")
+        return 0 if ok else 1
+
+    from maa.agent.agent_server import AgentServer
+
+    identifier = argv[1] if len(argv) > 1 else "warehouse"
+    register()
+    log(f"agent 启动，identifier = {identifier}")
+    AgentServer.start_up(identifier)
+    AgentServer.join()
+    AgentServer.shut_down()
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main(sys.argv))

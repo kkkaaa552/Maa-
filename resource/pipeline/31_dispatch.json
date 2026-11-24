@@ -1,0 +1,43 @@
+{
+  "Dispatch": {
+    "recognition": "OCR",
+    "roi": [1100, 440, 180, 110],
+    "expected": "派遣公司",
+    "action": "Click",
+    "target": true,
+    "post_delay": 2500,
+    "next": ["Dispatch.PageReady"],
+    "on_error": ["ReturnHall"]
+  },
+  "Dispatch.PageReady": {
+    "recognition": "OCR",
+    "roi": [10, 0, 260, 60],
+    "expected": "派遣公司",
+    "timeout": 15000,
+    "next": ["Dispatch.Leave"],
+    "on_error": ["Dispatch.Leave"]
+  },
+  "Dispatch.Office": {
+    "recognition": "OCR",
+    "roi": [400, 100, 220, 120],
+    "expected": "办公室",
+    "action": "DoNothing",
+    "next": []
+  },
+  "Dispatch.Leave": {
+    "recognition": "TemplateMatch",
+    "template": "返回.png",
+    "roi": [0, 0, 220, 120],
+    "threshold": 0.9,
+    "action": "Click",
+    "target": true,
+    "next": ["ReturnHall"],
+    "on_error": ["Dispatch.Leave.Wait"]
+  },
+  "Dispatch.Leave.Wait": {
+    "recognition": "DirectHit",
+    "action": "DoNothing",
+    "pre_delay": 2000,
+    "next": ["ReturnHall"]
+  }
+}

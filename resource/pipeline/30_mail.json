@@ -1,0 +1,117 @@
+{
+    "$schema": "https://raw.githubusercontent.com/MaaXYZ/MaaFramework/main/schema/pipeline.schema.json",
+
+    "Mail": {
+        "recognition": "DirectHit",
+        "action": "DoNothing",
+        "next": [
+            "Mail.Open"
+        ]
+    },
+
+    "Mail.Open": {
+        "recognition": "OCR",
+        "roi": [
+            20,
+            540,
+            70,
+            70
+        ],
+        "expected": "邮件",
+        "action": "Click",
+        "target": true,
+        "post_delay": 2000,
+        "timeout": 8000,
+        "next": [
+            "Mail.PageReady"
+        ],
+        "on_error": [
+            "ReturnHall"
+        ]
+    },
+
+    "Mail.PageReady": {
+        "recognition": "OCR",
+        "roi": [
+            40,
+            5,
+            160,
+            50
+        ],
+        "expected": "邮件",
+        "action": "DoNothing",
+        "timeout": 15000,
+        "next": [
+            "Mail.Claim"
+        ],
+        "on_error": [
+            "Mail.Leave"
+        ]
+    },
+
+    "Mail.Claim": {
+        "recognition": "OCR",
+        "roi": [
+            40,
+            630,
+            160,
+            70
+        ],
+        "expected": "全部领取",
+        "action": "Click",
+        "target": true,
+        "post_delay": 400,
+        "timeout": 5000,
+        "next": [
+            "Mail.ClaimResult"
+        ],
+        "on_error": [
+            "Mail.Leave"
+        ]
+    },
+
+    "Mail.ClaimResult": {
+        "recognition": "OCR",
+        "roi": [
+            380,
+            235,
+            760,
+            120
+        ],
+        "expected": [
+            "没有可领取的附件",
+            "领取成功",
+            "已领取"
+        ],
+        "action": "DoNothing",
+        "timeout": 4000,
+        "next": [
+            "Mail.Leave"
+        ],
+        "on_error": [
+            "Mail.Leave"
+        ]
+    },
+
+    "Mail.Leave": {
+        "recognition": "TemplateMatch",
+        "roi": [
+            0,
+            0,
+            220,
+            120
+        ],
+        "template": "返回.png",
+        "threshold": 0.9,
+        "action": "Click",
+        "target": true,
+        "post_delay": 1500,
+        "timeout": 6000,
+        "next": [
+            "ReturnHall"
+        ],
+        "on_error": [
+            "Daily.Leave.Force"
+        ]
+    }
+}

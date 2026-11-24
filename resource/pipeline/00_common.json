@@ -1,0 +1,83 @@
+{
+    "$schema": "https://raw.githubusercontent.com/MaaXYZ/MaaFramework/main/schema/pipeline.schema.json",
+
+    "StartUp": {
+        "recognition": "DirectHit",
+        "action": "StartApp",
+        "package": "com.cipaishe.laigu",
+        "post_delay": 4000,
+        "next": [
+            "WaitHall"
+        ]
+    },
+
+    "WaitHall": {
+        "recognition": "OCR",
+        "roi": [
+            1120,
+            630,
+            150,
+            70
+        ],
+        "expected": "任务",
+        "action": "DoNothing",
+        "timeout": 90000,
+        "next": []
+    },
+
+    "ReturnHall": {
+        "recognition": "OCR",
+        "roi": [
+            1120,
+            630,
+            150,
+            70
+        ],
+        "expected": [
+            "任务",
+            "任"
+        ],
+        "action": "DoNothing",
+        "timeout": 20000,
+        "next": [],
+        "on_error": [
+            "ReturnHall.Back.Tpl"
+        ]
+    },
+
+    "ReturnHall.Back.Tpl": {
+        "recognition": "TemplateMatch",
+        "roi": [
+            0,
+            0,
+            220,
+            120
+        ],
+        "template": "返回.png",
+        "threshold": 0.9,
+        "action": "Click",
+        "target": true,
+        "post_delay": 1200,
+        "timeout": 5000,
+        "next": [
+            "ReturnHall"
+        ],
+        "on_error": [
+            "ReturnHall.Back"
+        ]
+    },
+
+    "ReturnHall.Back": {
+        "recognition": "DirectHit",
+        "action": "Click",
+        "target": [
+            48,
+            38
+        ],
+        "post_delay": 1200,
+        "max_hit": 12,
+        "next": [
+            "ReturnHall"
+        ]
+    }
+}

@@ -1,0 +1,8 @@
+{
+    "$schema": "https://raw.githubusercontent.com/MaaXYZ/MaaFramework/main/schema/pipeline.schema.json",
+    "SmokeTest": {
+        "recognition": "OCR",
+        "expected": "任务",
+        "action": "DoNothing"
+    }
+}
