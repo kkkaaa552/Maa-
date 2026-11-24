@@ -112,7 +112,50 @@ def sim(a: np.ndarray, b: np.ndarray) -> float:
     return best
 
 
+DIGITS_DIR = ROOT / "data" / "digits"
+
+
+def build_from_digits() -> dict[str, list[np.ndarray]]:
+    """从 data/digits/d0.png … d9.png 读固化的中位字模。
+
+    这是 build() 的兜底路径：训练截图放在 debug/shots/，而 debug/ 既不进发布包也不进
+    git（.gitignore），最终用户拿到 zip 后根本没有那三张图。data/digits/ 是 build_digits.py
+    从同一批标注里蒸馏出来的 28×20 中位模板，大小固定、随包发布，用它建 bank 语义等价。
+
+    返回结构与 build() 一致：{字符: [模板数组, ...]}；缺任何一张就返回空 dict 让调用方决定。
+    """
+    bank: dict[str, list[np.ndarray]] = {}
+    for ch in "0123456789":
+        p = DIGITS_DIR / f"d{ch}.png"
+        if not p.is_file():
+            print(f"[字模] 缺 {p}，无法从 data/digits 建 bank")
+            return {}
+        img = cv2.imdecode(np.fromfile(str(p), dtype=np.uint8), cv2.IMREAD_GRAYSCALE)
+        if img is None:
+            print(f"[字模] 读不出 {p}")
+            return {}
+        bank[ch] = [prep(img)]
+    return bank
+
+
 def build(files: list[str]) -> dict[str, list[np.ndarray]]:
+    """优先用训练截图建 bank；截图缺失时退回 data/digits 固化字模。
+
+    坑（2026-11-24 实测）：早先这里对缺失截图是裸崩 ——
+    `read_gray(SHOT_DIR / name)` 直接抛 FileNotFoundError，整个 scan_image 挂掉，
+    任务以 ret=false 结束（就是最初「仓库识别任务识别失败」的根因）。
+    发布包里 debug/ 不存在，所以必须兜底。
+    """
+    if not all((SHOT_DIR / name).is_file() for name in files):
+        missing = [n for n in files if not (SHOT_DIR / n).is_file()]
+        print(f"[字模] 训练截图缺失 {len(missing)} 张（{missing[0]} …），改用 data/digits 固化字模")
+        bank = build_from_digits()
+        if bank:
+            return bank
+        raise FileNotFoundError(
+            f"训练截图与 data/digits 都不可用；缺截图: {missing}；缺字模目录: {DIGITS_DIR}"
+        )
+
     bank: dict[str, list[np.ndarray]] = {}
     for name in files:
         shot = read_gray(SHOT_DIR / name)

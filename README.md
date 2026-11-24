@@ -68,6 +68,7 @@ python -m venv .venv
 │   ├─ wh_counts.py        数量数字切字与分类（字模来自 data/digits/）
 │   ├─ wh_report.py        生成 report/仓库快照.md
 │   ├─ build_whitelist.py  从图鉴 xlsx 生成 data/whitelist.json
+│   ├─ sync_icons.py       把图鉴 icons 补进 resource/image/物品/
 │   ├─ configure.py        校验 / 补齐 OCR 模型
 │   └─ build.py            打包发布包
 ├─ resource/               资源包（MaaFramework 的 bundle 根）
@@ -76,6 +77,7 @@ python -m venv .venv
 │   └─ model/ocr/          PP-OCRv6 模型（det.onnx + rec.onnx + keys.txt）
 ├─ data/                   持久数据
 │   ├─ digits/             数字字模 d0~d9.png（数量识别的基准）
+│   ├─ refbook/            三份图鉴 xlsx + icons（白名单与图标的可追溯来源）
 │   ├─ whitelist.json      允许识别的物品名单（由三份图鉴生成）
 │   └─ warehouse/          上一次扫描结果与标注数据
 └─ libs/ runtimes/ plugins/  MFAAvalonia 运行库（与官方 v2.16.6 一致）
@@ -137,9 +139,29 @@ python tools\build.py 0.1.0 --no-zip
 `data/whitelist.json` 由 `tools/build_whitelist.py` 从三份图鉴 xlsx 生成，共 169 个名字
 （`resource/image/物品/` 里有 171 个 png，差的 `改名卡`、`冬谷币2` 在 `deny` 列表里）。
 
+图鉴原件随仓库一起放在 `data/refbook/`（三份 xlsx + 167 个 icons，4.8 MB），
+所以重新生成名单**不需要任何外部目录**：
+
+```powershell
+# 图鉴更新了：把新的 icons 补进图标库，再重生成白名单
+python tools\sync_icons.py --check          # 先看差多少
+python tools\sync_icons.py                  # 补进 resource/image/物品/
+python tools\build_whitelist.py             # 重生成 data/whitelist.json
+```
+
+若要用一份新的图鉴导出（不在 `data/refbook/` 里），两个脚本都支持 `--src`：
+
+```powershell
+python tools\sync_icons.py   --src "D:\某处\导出目录"
+python tools\build_whitelist.py --src "D:\某处\导出目录"
+```
+
 `wh_scan.load_icons()` 只加载白名单内的模板。名单外的物品额外用
 `resource/image/_deny/` 里的负样本模板判定，命中后**静默跳过**（不识别、不报告），
 避免它们被强配给白名单里最像的名字从而污染数量统计。
+
+要临时识别一个图鉴没收录的物品，往 `tools/build_whitelist.py` 的 `EXTRA` 里加一行
+（值是该物品归属的分类），再在 `resource/image/物品/` 下放一张同名 png，然后重跑白名单脚本。
 
 ---
 

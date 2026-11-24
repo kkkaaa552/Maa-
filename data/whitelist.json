@@ -2,9 +2,9 @@
   "version": 1,
   "note": "仓库识别白名单：只认这里列出的名字。由 tools/build_whitelist.py 生成，别手改。",
   "source": [
-    "D:\\新建文件夹\\物华弥新-物料\\物华弥新-物料.xlsx",
-    "D:\\新建文件夹\\物华弥新-资源\\物华弥新-资源.xlsx",
-    "D:\\新建文件夹\\物华弥新-票券\\物华弥新-票券.xlsx"
+    "data/refbook/物华弥新-物料/物华弥新-物料.xlsx",
+    "data/refbook/物华弥新-资源/物华弥新-资源.xlsx",
+    "data/refbook/物华弥新-票券/物华弥新-票券.xlsx"
   ],
   "cats": {
     "物料": [

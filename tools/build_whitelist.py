@@ -2,30 +2,37 @@
 """从三份图鉴 xlsx 生成识别白名单 data/whitelist.json。
 
 用户 2026-11-24 定：仓库识别**只识别**这三份名单里存在的名字与图标，名单外的一律不认。
-名单来源固定为：
-    D:\\新建文件夹\\物华弥新-物料\\物华弥新-物料.xlsx
-    D:\\新建文件夹\\物华弥新-资源\\物华弥新-资源.xlsx
-    D:\\新建文件夹\\物华弥新-票券\\物华弥新-票券.xlsx
+默认名单来源（项目内自包含，已随仓库分发）：
+    data/refbook/物华弥新-物料/物华弥新-物料.xlsx
+    data/refbook/物华弥新-资源/物华弥新-资源.xlsx
+    data/refbook/物华弥新-票券/物华弥新-票券.xlsx
 sheet 名分别是「物料图鉴 / 资源图鉴 / 票券图鉴」，名称在第 4 列（D），图标文件名在第 9 列（I）。
 
-外部路径只在**生成时**用一次，产物 data/whitelist.json 是项目内自包含的，
-运行时 wh_scan.load_icons() 只读这个 JSON，不再依赖 D:\\新建文件夹 是否还在。
+图鉴有新版时用 `--src` 指向导出目录，不传则用 data/refbook 里的这一份：
+    python tools/build_whitelist.py --src "<图鉴导出根目录>"
+
+产物 data/whitelist.json 是项目内自包含的，运行时 wh_scan.load_icons() 只读这个 JSON，
+不依赖任何外部目录。
 
 加名字的两种方式：
-  1. 图鉴更新了 -> 重跑本脚本 `python tools/build_whitelist.py`
+  1. 图鉴更新了 -> 先 `python tools/sync_icons.py --src <导出目录>` 补图标，
+     再 `python tools/build_whitelist.py --src <导出目录>` 重生成白名单
   2. 只是临时补一个图鉴没收录的（如「至纯灰雾涂料」「扯淡图章」）-> 往 EXTRA 里加一行
 """
 from __future__ import annotations
 
+import argparse
 import json
 import pathlib
+import sys
 
 from openpyxl import load_workbook
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 OUT = ROOT / "data" / "whitelist.json"
 
-XLSX_ROOT = pathlib.Path(r"D:\新建文件夹")
+# 默认用项目自带的图鉴副本；--src 可指向新的导出目录
+XLSX_ROOT = ROOT / "data" / "refbook"
 CATS = ("物料", "资源", "票券")
 
 # 图鉴名单之外、用户点名要识别的物品。值 = 归属分类（决定它出现在报告的哪一节）。
@@ -43,9 +50,9 @@ DENY = {
 }
 
 
-def read_cat(cat: str) -> tuple[list[str], list[str]]:
+def read_cat(cat: str, root: pathlib.Path) -> tuple[list[str], list[str]]:
     """读一份 xlsx，返回 (名称列表, 图标文件名列表)，两者一一对应。"""
-    p = XLSX_ROOT / f"物华弥新-{cat}" / f"物华弥新-{cat}.xlsx"
+    p = root / f"物华弥新-{cat}" / f"物华弥新-{cat}.xlsx"
     if not p.is_file():
         raise FileNotFoundError(f"图鉴缺失: {p}")
     wb = load_workbook(p, data_only=True)
@@ -60,11 +67,28 @@ def read_cat(cat: str) -> tuple[list[str], list[str]]:
     return names, files
 
 
-def main() -> None:
+def main() -> int:
+    ap = argparse.ArgumentParser()
+    ap.add_argument(
+        "--src",
+        default=str(XLSX_ROOT),
+        help="图鉴导出根目录，默认用项目自带的 data\\refbook",
+    )
+    args = ap.parse_args()
+    src_root = pathlib.Path(args.src)
+    if not src_root.is_dir():
+        print(f"[错误] 图鉴根目录不存在：{src_root}")
+        return 2
+    print(f"图鉴来源：{src_root}")
+
     cats: dict[str, list[str]] = {}
     problems: list[str] = []
     for cat in CATS:
-        names, files = read_cat(cat)
+        try:
+            names, files = read_cat(cat, src_root)
+        except FileNotFoundError as e:
+            print(f"[错误] {e}")
+            return 2
         cats[cat] = names
         for n, f in zip(names, files):
             if not f:
@@ -88,10 +112,18 @@ def main() -> None:
     missing_icon = sorted(set(allnames) - stems - set(DENY))
     extra_icon = sorted(stems - set(allnames) - set(DENY))
 
+    # source 记来源，便于日后追溯。项目内的写成相对路径，换机器/换盘不会失效。
+    def _src_label(c: str) -> str:
+        p = src_root / f"物华弥新-{c}" / f"物华弥新-{c}.xlsx"
+        try:
+            return p.relative_to(ROOT).as_posix()
+        except ValueError:
+            return str(p)
+
     data = {
         "version": 1,
         "note": "仓库识别白名单：只认这里列出的名字。由 tools/build_whitelist.py 生成，别手改。",
-        "source": [str(XLSX_ROOT / f"物华弥新-{c}" / f"物华弥新-{c}.xlsx") for c in CATS],
+        "source": [_src_label(c) for c in CATS],
         "cats": {c: sorted(cats[c]) for c in CATS},
         "extra_reason": EXTRA,
         "deny": DENY,
@@ -120,7 +152,8 @@ def main() -> None:
             print(f"     {s}")
     else:
         print("\n  校验通过：名单 <-> 图标文件一一对应，无跨分类重名。")
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

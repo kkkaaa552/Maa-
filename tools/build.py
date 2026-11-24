@@ -79,7 +79,10 @@ EXCLUDE_NAMES = {
 # config 里要带进包的文件（相对 config/）
 CONFIG_KEEP = ["config.json", "maa_option.json"]
 # data 里要带进包的文件（相对 data/）
-DATA_KEEP_DIRS = ["digits"]          # 数字字模，缺了 wh_counts.build 直接崩
+DATA_KEEP_DIRS = [
+    "digits",     # 数字字模，缺了 wh_counts.build 直接崩
+    "refbook",    # 三份图鉴 xlsx + icons，4.8 MB；带上用户才能自己重跑 build_whitelist.py
+]
 DATA_KEEP_FILES = [
     "catalog.json", "codex.json", "name_alias.json", "whitelist.json",
     "warehouse/name_override.json",
@@ -217,11 +220,15 @@ def step_code() -> None:
         else:
             n, b = copytree(src, BUILD_DIR / d)
         log(f"  {d:<10} {n:>5} 文件  {b / 1024 / 1024:>8.1f} MB")
-    for f in ("main.py", "maaenv.py"):
+    # main.py / maaenv.py 是手工调试入口；README / LICENSE 对应官方 install.py 的
+    # install_chores() —— 少这两个，用户拿到包不知道该装什么运行时、按什么协议分发。
+    for f in ("main.py", "maaenv.py", "README.md", "LICENSE"):
         src = ROOT / f
         if src.is_file():
             copy_file(src, BUILD_DIR / f)
             log(f"  {f} 已拷")
+        else:
+            log(f"  ! 缺 {f}（不影响运行，但包里会少一份说明/许可）")
 
 
 def copy_data() -> tuple[int, int]:
@@ -427,6 +434,7 @@ def main() -> int:
         "agent/warehouse_agent.py", "tools/wh_scan.py", "tools/wh_counts.py",
         "data/digits/d0.png", "data/whitelist.json",
         "libs", "runtimes", APP_EXE_DST,
+        "README.md", "LICENSE",
     ]
     log("\n=== 自检 ===")
     bad = 0
@@ -439,10 +447,16 @@ def main() -> int:
 
     if (BUILD_DIR / "python" / "python.exe").is_file():
         py = BUILD_DIR / "python" / "python.exe"
+        # 自检必须模拟「最终用户」的环境：包里没有 maafw/（它只是开发目录 main.py
+        # 手工模式的第三条原生库链路），所以这里要**清掉** MAAFW_BINARY_PATH，
+        # 让 maa 用它自带的 python/Lib/site-packages/maa/bin。
+        # 坑（2026-11-24 实测）：早先这里写的是 MAAFW_BINARY_PATH=str(ROOT/"maafw")，
+        # 而 maafw/ 既不进发布包也不进 git（.gitignore:49），CI checkout 后必定
+        # 抛 FileNotFoundError: `<install>/maafw` does not exist，导致整包判失败。
+        env = {k: v for k, v in os.environ.items() if k != "MAAFW_BINARY_PATH"}
         r = subprocess.run(
             [str(py), "-c", "import numpy,cv2,PIL,openpyxl,jsonschema,maa;print('ok')"],
-            capture_output=True, text=True,
-            env={**os.environ, "MAAFW_BINARY_PATH": str(ROOT / "maafw")},
+            capture_output=True, text=True, env=env,
         )
         ok = r.returncode == 0 and "ok" in r.stdout
         log(f"  {'OK ' if ok else 'FAIL'} python 依赖 import 自检")

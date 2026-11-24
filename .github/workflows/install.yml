@@ -130,7 +130,12 @@ jobs:
       - name: 自检依赖可 import
         shell: pwsh
         run: |
-          $env:MAAFW_BINARY_PATH = "$PWD\maafw"
+          # 注意：这里**不能**设 MAAFW_BINARY_PATH。maa 包在没有这个环境变量时会用它自带的
+          # Lib\site-packages\maa\bin，那才是最终用户运行时的真实路径。
+          # 早先这里写 $env:MAAFW_BINARY_PATH = "$PWD\maafw"，但 maafw/ 只在开发者本机存在
+          # （.gitignore:49 已忽略），CI checkout 出来没有它，这步必然抛
+          # FileNotFoundError: `<install>/maafw` does not exist.，整个 build 挂掉。
+          if (Test-Path Env:\MAAFW_BINARY_PATH) { Remove-Item Env:\MAAFW_BINARY_PATH }
           & python\python.exe -c "import numpy,cv2,PIL,openpyxl,jsonschema,maa; print('all imports OK')"
           if ($LASTEXITCODE -ne 0) { exit 1 }
 
