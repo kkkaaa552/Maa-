@@ -131,9 +131,20 @@ python tools\build.py 0.1.0 --no-zip
 
 **改这一块要小心**：把 `maa/bin/` 的 dll 删掉而不设 `MAAFW_BINARY_PATH`，agent 会以
 `ModuleNotFoundError` 起不来，且两个自定义动作（作战均衡决策 / 迷踪盘求解）会**静默失效**
-—— GUI 上完全看不出来，只有 `logs/` 里有一行 Traceback。`build.py` 的自检里专门有一段
-复现这个场景：清空 `MAAFW_BINARY_PATH` 跑 `agent/warehouse_agent.py --selftest`，
-输出里有 `ModuleNotFoundError` 就判失败。
+—— GUI 上完全看不出来，只有 `logs/` 里有一行 Traceback。
+
+`build.py` 的自检里专门有一段守住这条：清空 `MAAFW_BINARY_PATH`，在 `install/` 下跑
+
+```
+python -c "import sys,os;sys.path.insert(0,os.path.join(os.getcwd(),'agent'));import warehouse_agent;import maa;from maa.library import Library;print('framework:',Library.framework());print('env:',os.environ.get('MAAFW_BINARY_PATH'))"
+```
+
+要求输出里同时出现 `runtimes`、`win-x64`、`native`、`MaaFramework.dll`，否则判失败。
+
+注意不能用 `agent/warehouse_agent.py --selftest` 来验这件事：`main()` 里
+`if "--selftest" in argv:` 那个分支在 `from maa.agent.agent_server import AgentServer`
+之前就 return 了，根本走不到加载原生库那一步 —— 拿它当判据永远通过（这个坑踩过，
+2026-11-25 换成了上面这条探针）。
 
 ### 首启配置走 config.template.json
 
@@ -146,6 +157,35 @@ python tools\build.py 0.1.0 --no-zip
 
 所以打包时写入的是 `config.template.json`（4 个键，110 B），不写 `config.json` ——
 写 `config.json` 会让下一次发版把用户的设置直接盖掉。
+
+### 构建期需要 Pillow
+
+`build.py` 的 `[3/10]` 步要用 PIL 把 `resource/image/logo.png` 转成
+`Assets/logo.ico`（8 个尺寸，184,696 B），给窗口标题栏和托盘用。
+
+- 构建机上必须有 Pillow（CI 有单独一步 `pip install "pillow>=11,<14"`）；
+- 没有 Pillow 时这一步降级为跳过（`no-pil`），口头警告、不拦包 —— 程序会回落到
+  MFAAvalonia 内嵌的官方 logo；
+- 但 PIL 在、源图却在 `PIL.Image.open` 阶段抛异常，就判**失败**并拦住整包
+  （这种情况说明源图坏了，不是环境缺件）。
+
+这三种情况都本地验过（无 PIL / 有 PIL / PIL 抛异常 → exit 0 / 0 / 2）。
+
+### 一条容易踩的编码坑
+
+2026-11-25 的 CI 连续两轮挂在「校验 OCR 模型」，原因是 Windows runner 上
+`python` 的 stdout 被 pwsh 接管成管道后退化成 cp1252，`configure.py` 第一句中文
+`print` 就抛 `UnicodeEncodeError`，退出码 1 —— 看起来像文件校验失败，其实一个字节都没比。
+
+修法分三层，缺一层还会漏：
+
+1. `tools/configure.py` / `tools/build.py` / `agent/warehouse_agent.py` 各自
+   `main()` 首行调 `_ensure_utf8_stdio()`，把 stdout/stderr 重设为 utf-8；
+2. `build.py` 里所有 `subprocess.run` 加 `encoding="utf-8", errors="replace"`，
+   并在子进程 env 里塞 `PYTHONIOENCODING=utf-8` + `PYTHONUTF8=1`
+   —— 否则异常发生在 reader 线程里，只打 traceback 不影响主流程，
+   **自检看起来通过但实际没读到任何输出**；
+3. `install.yml` 的 `env:` 块全局设 `PYTHONUTF8: '1'` 与 `PYTHONIOENCODING: 'utf-8'`。
 
 ---
 
@@ -203,6 +243,19 @@ python tools\build_whitelist.py --src "D:\某处\导出目录"
 `wh_scan.load_icons()` 只加载白名单内的模板。名单外的物品额外用
 `resource/image/_deny/` 里的负样本模板判定，命中后**静默跳过**（不识别、不报告），
 避免它们被强配给白名单里最像的名字从而污染数量统计。
+
+这两张负样本图曾经在发布包里整块缺失过：`.gitignore` 有一条 `_*.png`（挡开发期临时
+探针图的），把 `_deny-*.png` 一起挡了 —— 本地磁盘上有文件，`build.py` 的 copytree 不看
+git 所以本地打包一切正常，只有 CI checkout 出来的树里没有，发布包就少了这两张。
+2026-11-25 已加否定规则修掉：
+
+```gitignore
+!resource/image/_deny/
+!resource/image/_deny/*.png
+```
+
+加文件到 `resource/image/` 时注意这条 —— 文件名以下划线开头的默认被忽略。
+`_deny-` 前缀是硬约定（`load_deny()` 用 `p.stem.removeprefix("_deny-")` 取名字），改不了。
 
 要临时识别一个图鉴没收录的物品，往 `tools/build_whitelist.py` 的 `EXTRA` 里加一行
 （值是该物品归属的分类），再在 `resource/image/物品/` 下放一张同名 png，然后重跑白名单脚本。
