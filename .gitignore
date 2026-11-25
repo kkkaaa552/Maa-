@@ -88,6 +88,16 @@ Thumbs.db
 _ci_log*
 _build*.log
 
+# ---- 例外：名单外负样本模板必须进仓库 ----
+# tools/wh_scan.py 的 load_deny() 读 resource/image/_deny/*.png 当「名单外物品」
+# 的负样本模板（兑换券、紫信封这类会被强配成白名单里最像的物品）。但上面
+# 「开发期临时图」那条 `_*.png` 正好把它们一起挡了。
+# 2026-11-25 核对 Release 包才发现：CI checkout 后只有 2620 条目，比本地 install
+# 少这两张 —— 发布版因此认不出兑换券/紫信封，会把它们配成「改名卡 0.366」
+# 「家具蓝图 0.395」。这条例外必须留在最后（git 的否定规则按顺序生效）。
+!resource/image/_deny/
+!resource/image/_deny/*.png
+
 # ---- 保留 ----
 !.github/
 !.vscode/
