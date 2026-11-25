@@ -25,6 +25,12 @@ env:
   PY_VERSION: '3.13.17'
   PY_EMBED_URL: 'https://www.python.org/ftp/python/3.13.17/python-3.13.17-embed-amd64.zip'
   PY_EMBED_SIZE: '11441267'
+  # 2026-11-25 两轮 CI 都挂在「校验 OCR 模型」，根因是 windows-latest 上 Python 的
+  # stdout 被 pwsh 接管成管道后编码退化成 cp1252，tools/configure.py 第一句
+  # print 中文就抛 UnicodeEncodeError 退出 1（本地代码页 936 能编中文，复现不出来）。
+  # 脚本里已各自 reconfigure 成 utf-8，这里再加一道全局兜底，覆盖所有 step 的 python 调用。
+  PYTHONUTF8: '1'
+  PYTHONIOENCODING: 'utf-8'
 
 jobs:
   # 先算版本号，后面两个 job 都用
@@ -159,7 +165,32 @@ jobs:
 
       - name: 校验 OCR 模型
         shell: pwsh
-        run: python tools\configure.py --check
+        run: |
+          # 失败时把具体原因打成 annotation。否则 Actions 只报
+          # "Process completed with exit code 1"，日志下载接口要鉴权、
+          # 本地取不到，排障时完全看不出是哪个文件、差多少字节。
+          $out = & python tools\configure.py --check 2>&1
+          $code = $LASTEXITCODE
+          $out | ForEach-Object { Write-Host $_ }
+          # 行尾转换是已知风险（2026-11-25 run 45537166342），把相关配置一起打出来
+          Write-Host ("  core.autocrlf = {0}" -f (git config --get core.autocrlf))
+          Write-Host ("  .gitattributes 存在 = {0}" -f (Test-Path .gitattributes))
+          Write-Host ("  keys.txt attr  = {0}" -f ((git check-attr text eol binary -- resource/model/ocr/keys.txt) -join ' | '))
+          # 无论成败都打印实际字节数，方便与 configure.py 的 EXPECT 对照
+          foreach ($n in @('det.onnx', 'rec.onnx', 'keys.txt')) {
+            $f = Join-Path 'resource/model/ocr' $n
+            if (Test-Path $f) {
+              Write-Host ("  {0,-10} {1,12} B" -f $n, (Get-Item $f).Length)
+            } else {
+              Write-Host ("  {0,-10} 缺失" -f $n)
+            }
+          }
+          if ($code -ne 0) {
+            $msg = ($out | Out-String).Trim() -replace "`r?`n", " / "
+            if ($msg.Length -gt 900) { $msg = $msg.Substring(0, 900) }
+            Write-Host "::error title=OCR 校验失败::$msg"
+            exit 1
+          }
 
       - name: 确认构建目录是干净的
         shell: pwsh

@@ -680,7 +680,23 @@ def set_exe_icon(exe: Path, png: Path) -> int:
 
 # ============================ main ============================
 
+def _ensure_utf8_stdio() -> None:
+    """保证 stdout/stderr 能输出中文。
+
+    2026-11-25 的 CI 失败（run 45537166342）暴露过这个坑：GitHub Actions 的
+    windows-latest 上 Python 的 stdout 被 pwsh 接管成管道，编码退化成 cp1252，
+    任何 print 中文的地方都抛 UnicodeEncodeError 直接退出 1。
+    本文件有近三千个汉字（日志、docstring、报错信息），必须在入口处修一次。
+    """
+    for stream in (sys.stdout, sys.stderr):
+        try:
+            stream.reconfigure(encoding="utf-8", errors="replace")
+        except (AttributeError, OSError, ValueError):
+            pass
+
+
 def main() -> int:
+    _ensure_utf8_stdio()
     ap = argparse.ArgumentParser(description="打包物华弥新MAA 发布包")
     ap.add_argument("version", help="版本号，例如 0.1.0")
     ap.add_argument("os", nargs="?", default="win", help="win / macos / linux")
@@ -772,9 +788,16 @@ def main() -> int:
         # 现在包里只有一套原生库，在 runtimes/win-x64/native，所以这里显式指它。
         env = {k: v for k, v in os.environ.items() if k != "MAAFW_BINARY_PATH"}
         env["MAAFW_BINARY_PATH"] = str(BUILD_DIR / "runtimes" / "win-x64" / "native")
+        # 子进程的 stdout 也必须是 utf-8：否则在 cp1252 / gbk 的宿主上，
+        # subprocess 的 reader 线程解码会抛 UnicodeDecodeError（2026-11-25 实测
+        # `'gbk' codec can't decode byte 0xab`），且异常发生在后台线程里、
+        # 只打印 traceback 不影响主流程 —— 结果是自检看起来"通过"但实际没读到输出。
+        env["PYTHONIOENCODING"] = "utf-8"
+        env["PYTHONUTF8"] = "1"
         r = subprocess.run(
             [str(py), "-c", "import numpy,cv2,PIL,openpyxl,jsonschema,maa;print('ok')"],
             capture_output=True, text=True, env=env,
+            encoding="utf-8", errors="replace",
         )
         ok = r.returncode == 0 and "ok" in r.stdout
         if ok:
@@ -785,16 +808,39 @@ def main() -> int:
             log(f"       stderr={r.stderr.strip()[:300]}")
 
         # agent 端不靠外部环境变量：warehouse_agent.py 自己把 MAAFW_BINARY_PATH
-        # 指向 runtimes。这里用「清空环境变量」跑一次 --selftest，验证那条自设
-        # 逻辑真的生效 —— 否则两个 Custom 动作会静默注册失败（2026-11-24 事故）。
+        # 指向 runtimes。这里用「清空环境变量」真的 import 一遍 maa 并把已加载的
+        # 原生库路径打出来 —— 而不是跑 --selftest。
+        #
+        # 踩过的坑：warehouse_agent.py 的 main() 里 `if "--selftest" in argv:`
+        # 分支在 `from maa.agent.agent_server import AgentServer` 之前就 return，
+        # 所以 --selftest 永远碰不到 maa / 原生库。用 --selftest 输出里有没有
+        # ModuleNotFoundError 来判，等于永远通过的空判（2026-11-25 发现）。
         env2 = {k: v for k, v in os.environ.items() if k != "MAAFW_BINARY_PATH"}
+        env2["PYTHONIOENCODING"] = "utf-8"
+        env2["PYTHONUTF8"] = "1"
+        probe = (
+            "import sys, os;"
+            "sys.path.insert(0, os.path.join(os.getcwd(), 'agent'));"
+            "import warehouse_agent;"
+            "import maa;"
+            "from maa.library import Library;"
+            "print('framework:', Library.framework());"
+            "print('env:', os.environ.get('MAAFW_BINARY_PATH'))"
+        )
         r2 = subprocess.run(
-            [str(py), str(BUILD_DIR / "agent" / "warehouse_agent.py"), "--selftest"],
+            [str(py), "-c", probe],
             capture_output=True, text=True, env=env2, cwd=str(BUILD_DIR),
+            encoding="utf-8", errors="replace",
         )
         blob = (r2.stdout or "") + (r2.stderr or "")
-        if "ModuleNotFoundError" in blob or "does not exist" in blob:
-            fail("agent 原生库自设失效（warehouse_agent.py 未能找到 MaaFramework.dll）")
+        # 正面判据：必须真的 dlopen 到 runtimes 里那份 MaaFramework.dll。
+        want = str(BUILD_DIR / "runtimes" / "win-x64" / "native")
+        if r2.returncode != 0 or "framework:" not in blob:
+            fail("agent 原生库自设失效（import warehouse_agent / maa 失败）")
+            log(f"       {blob.strip()[:400]}")
+        elif not all(s in blob for s in ("runtimes", "win-x64", "native", "MaaFramework.dll")):
+            fail("agent 加载到的不是 runtimes 里的原生库")
+            log(f"       期望: {want}")
             log(f"       {blob.strip()[:400]}")
         else:
             log("  OK   agent 能自己找到 runtimes 里的原生库")

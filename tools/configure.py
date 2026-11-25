@@ -113,7 +113,28 @@ def download_and_unpack(force: bool = False) -> int:
     return 0
 
 
+def _ensure_utf8_stdio() -> None:
+    """保证 stdout/stderr 能输出中文。
+
+    2026-11-25 CI run 45537166342 / 45538211795 的失败原因就在这里：
+    GitHub Actions 的 windows-latest 上，Python 的 stdout 被 pwsh 接管成管道，
+    编码退化成 cp1252（不是 UTF-8 模式），第一句
+    `print(f"[configure] OCR 目录: {OCR_DIR}")` 就抛 UnicodeEncodeError 退出 1。
+    本地控制台是代码页 936，能编中文，所以这个坑在本地永远看不到。
+
+    用 errors="replace" 而不是 strict：即便某个字符真的编不出来，
+    也只是显示成 ?，不该让一次纯粹的校验任务因为日志排版而失败。
+    """
+    for stream in (sys.stdout, sys.stderr):
+        try:
+            stream.reconfigure(encoding="utf-8", errors="replace")
+        except (AttributeError, OSError, ValueError):
+            # 老版本 Python 或被重定向到不可重配置的流：交给 PYTHONIOENCODING 兜底
+            pass
+
+
 def main() -> int:
+    _ensure_utf8_stdio()
     ap = argparse.ArgumentParser(description="校验 / 补齐 OCR 模型")
     ap.add_argument("--check", action="store_true", help="只校验，不联网")
     ap.add_argument("--force", action="store_true", help="强制重新下载")

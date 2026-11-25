@@ -51,7 +51,10 @@ if (_NATIVE / "MaaFramework.dll").is_file():
     _given = os.environ.get("MAAFW_BINARY_PATH")
     # 外部显式设了有效路径就尊重它（开发机可能指向 maafw/）；没设、或设成了
     # 不存在的目录，就指向包里这套 runtimes。
-    if not _given or not Path(_given).is_dir():
+    # 判据必须是「那个目录里真有 MaaFramework.dll」而不是「目录存在」：
+    # 实测把 MAAFW_BINARY_PATH 指到一个存在但没有 dll 的目录，import maa 会
+    # 直接 FileNotFoundError: Could not find module '...\MaaFramework.dll'。
+    if not _given or not (Path(_given) / "MaaFramework.dll").is_file():
         os.environ["MAAFW_BINARY_PATH"] = str(_NATIVE)
 
 
@@ -346,7 +349,23 @@ def code_fingerprint() -> str:
     return "代码 " + " | ".join(parts)
 
 
+def _ensure_utf8_stdio() -> None:
+    """保证 stdout/stderr 能输出中文。
+
+    打包后 agent 被 MFAAvalonia 用 child_exec 拉起，stdout 是管道；CI 里又被
+    pwsh 接管。这两种情况下 Python 都可能退化成 cp1252，log() 里任何一句中文
+    都会抛 UnicodeEncodeError，整个 agent 直接起不来 —— 而界面只会显示
+    「连接失败」，看不出真正原因。入口处修一次，代价为零。
+    """
+    for stream in (sys.stdout, sys.stderr):
+        try:
+            stream.reconfigure(encoding="utf-8", errors="replace")
+        except (AttributeError, OSError, ValueError):
+            pass
+
+
 def main(argv: list[str]) -> int:
+    _ensure_utf8_stdio()
     log("=" * 70)
     log(code_fingerprint())
     if "--selftest" in argv:
