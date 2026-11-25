@@ -9,3 +9,18 @@
 # （binary 等价于 -text -diff，即禁止任何行尾转换）。
 
 resource/model/ocr/keys.txt binary
+
+# 全局关闭行尾转换，让 checkout 出来的字节与仓库里存的完全一致。
+#
+# 起因（2026-11-25 逐字节核对发布包时发现）：CI 出的包里每个文本文件的长度都比
+# 本地多出「正好等于它的 LF 行数」—— README.md 13,669→13,941（+272=272 行）、
+# LICENSE +674、tools/build.py +922、agent/warehouse_agent.py +388、main.py +414。
+# 说明 runner 上的 core.autocrlf=true 把整棵树都转成了 CRLF。
+#
+# 功能上无害（Python / JSON / Markdown 都吃 CRLF），但「CI 出的包」和「本地跑的包」
+# 因此不是同一份字节，出问题没法直接 diff 对齐。
+#
+# 用 -text 而不是 `* text=auto eol=lf`：后者会把仓库里现存的 22 个 CRLF blob
+# （data/*.json、agent/combat_balance.py 等）全部正规化，产生一大片与本次修复无关的
+# 改动；-text 只禁转换、不改内容，diff 照常工作。
+* -text
