@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import shutil
 import sys
 import traceback
@@ -27,7 +28,31 @@ ROOT = Path(__file__).resolve().parents[1]
 REPORT_DIR = ROOT / "report"
 LOG_PATH = ROOT / "debug" / "wh_agent.log"
 
+# 打包后跑的是嵌入式 Python（python313._pth 让解释器进入 isolated 模式），
+# **脚本所在目录不会自动进 sys.path** —— 实测 sys.path[0] 是
+# `python\python313.zip`，`import combat_balance` 直接 ModuleNotFoundError，
+# 于是作战均衡与迷踪盘两个 Custom 动作静默注册失败（只在 maafw.log 里留一行
+# Traceback，界面上看不出来）。所以本目录必须自己塞进去，不能依赖默认行为。
+_HERE = str(Path(__file__).resolve().parent)
+if _HERE not in sys.path:
+    sys.path.insert(0, _HERE)
 sys.path.insert(0, str(ROOT / "tools"))
+
+# 原生库统一走 runtimes/win-x64/native —— 与 MFAAvalonia 界面**共用同一份**。
+# 发布包里原本有两套 MaaFramework：runtimes\...\native（5.14.3，界面用）和
+# python\Lib\site-packages\maa\bin（5.16.1，agent 用），同体积 86 MB 各一份。
+# `maa/__init__.py` 只看两处：环境变量 MAAFW_BINARY_PATH，或包内 maa\bin；
+# 它**不会**自动去找 runtimes。所以这里必须显式指路，否则一旦 maa\bin 里的
+# dll 被精简掉，import maa 立刻 FileNotFoundError。
+# 打包版实际只剩 5.16.1 一套（tools/build.py 的 step_ui 会用 maa/bin 覆盖
+# runtimes/native，再把 maa/bin 的 dll 清空），两边版本号因此一致。
+_NATIVE = ROOT / "runtimes" / "win-x64" / "native"
+if (_NATIVE / "MaaFramework.dll").is_file():
+    _given = os.environ.get("MAAFW_BINARY_PATH")
+    # 外部显式设了有效路径就尊重它（开发机可能指向 maafw/）；没设、或设成了
+    # 不存在的目录，就指向包里这套 runtimes。
+    if not _given or not Path(_given).is_dir():
+        os.environ["MAAFW_BINARY_PATH"] = str(_NATIVE)
 
 
 def log(msg: str) -> None:

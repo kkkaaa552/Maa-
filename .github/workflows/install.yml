@@ -139,9 +139,44 @@ jobs:
           & python\python.exe -c "import numpy,cv2,PIL,openpyxl,jsonschema,maa; print('all imports OK')"
           if ($LASTEXITCODE -ne 0) { exit 1 }
 
+      - name: 清掉 import 现场生成的 pyc
+        shell: pwsh
+        run: |
+          # 上一步的 import 会在 python\Lib\site-packages 下写一堆 __pycache__。
+          # build.py 的 copytree 只跳源目录里的 __pycache__，理论上拷不到包里去，
+          # 但这里先清一遍，让「源 python/ 干净」成为事实而不是推断。
+          $pyc = Get-ChildItem python -Recurse -File -Include *.pyc,*.pyo -ErrorAction SilentlyContinue
+          $n = ($pyc | Measure-Object).Count
+          if ($n -gt 0) { $pyc | Remove-Item -Force }
+          # 空掉的 __pycache__ 也删掉，避免残留空目录进 zip
+          Get-ChildItem python -Recurse -Directory -Filter __pycache__ -ErrorAction SilentlyContinue |
+            Where-Object { -not (Get-ChildItem $_.FullName -Force) } |
+            Remove-Item -Force -Recurse
+          Write-Host "清理源 python/ 的 pyc: $n 个"
+          $left = (Get-ChildItem python -Recurse -File -Include *.pyc,*.pyo -ErrorAction SilentlyContinue | Measure-Object).Count
+          Write-Host "复查剩余 pyc: $left"
+          if ($left -ne 0) { Write-Error "源 python/ 仍有 pyc"; exit 1 }
+
       - name: 校验 OCR 模型
         shell: pwsh
         run: python tools\configure.py --check
+
+      - name: 确认构建目录是干净的
+        shell: pwsh
+        run: |
+          # copytree 是覆盖式写入，目标里源没有的文件不会被删。只要 install/ 里留着上一次
+          # 的残留（pyc、已删模块、旧资源），它就会原样进 zip —— 2026-11-24 那版产物里
+          # 325 个 pyc 就是这么来的。CI 是全新 checkout，正常情况下这里什么都不该有；
+          # 真出现了就说明有缓存或上一步异常，必须停下。
+          foreach ($d in @('install', 'dist')) {
+            if (Test-Path $d) {
+              $f = Get-ChildItem $d -Recurse -File -ErrorAction SilentlyContinue
+              Write-Host "$d 已存在: $($f.Count) 文件 —— 删除"
+              Remove-Item $d -Recurse -Force
+            } else {
+              Write-Host "$d 不存在（符合预期）"
+            }
+          }
 
       - name: 打包
         shell: pwsh
@@ -150,6 +185,61 @@ jobs:
           python tools\build.py $ver win x86_64
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           Get-ChildItem dist | Format-Table Name, Length
+
+      - name: 核对产物
+        shell: pwsh
+        run: |
+          # build.py 自己会验（verify_zip），这里再独立验一遍，防止 build.py 被改坏
+          # 或有人绕过它直接传旧 zip。判据：条目数 > 2000、pyc=0、无反斜杠、含关键件。
+          $zip = Get-ChildItem dist -Filter *.zip | Select-Object -First 1
+          if (-not $zip) { Write-Error "dist 下没有 zip"; exit 1 }
+          Add-Type -AssemblyName System.IO.Compression.FileSystem
+          $a = [System.IO.Compression.ZipFile]::OpenRead($zip.FullName)
+          try {
+            $names = $a.Entries | ForEach-Object { $_.FullName }
+            $n = $names.Count
+            $pyc = ($names | Where-Object { $_ -match '__pycache__' -or $_ -like '*.pyc' -or $_ -like '*.pyo' }).Count
+            $bslash = ($names | Where-Object { $_ -like '*\*' }).Count
+            $root = ($names | Where-Object { $_ -notmatch '/' }).Count
+            Write-Host "zip: $($zip.Name)  $([math]::Round($zip.Length/1MB,1)) MB  $n 条目"
+            Write-Host "  pyc=__pycache__ : $pyc"
+            Write-Host "  反斜杠条目      : $bslash"
+            Write-Host "  根级条目(无/)   : $root"
+            $missing = @()
+            # 单套 MaaFramework：原生库只在 runtimes 一处，maa/bin 里不应再有 dll
+            foreach ($k in @('interface.json','runtimes/win-x64/native/MaaFramework.dll',
+                             'runtimes/win-x64/native/MaaAgentServer.dll',
+                             'python/python.exe','config/config.template.json',
+                             'Assets/logo.ico',
+                             'resource/model/ocr/det.onnx','data/digits/d0.png',
+                             'README.md','LICENSE')) {
+              if ($names -notcontains $k) { $missing += $k }
+            }
+            if ($missing.Count -gt 0) { Write-Host "  缺关键件: $($missing -join ', ')" }
+
+            # 反面判据：第二套原生库与运行期残留都不该出现。
+            # 注意排除 plugins/ —— maa/bin/plugins/MaaPluginDemo.dll 是随包分发的
+            # 插件示例，不是原生库，路径同样以 maa/bin/ 开头，不排除就会误报。
+            $dup = ($names | Where-Object {
+              $_ -like 'python/Lib/site-packages/maa/bin/*.dll' -and $_ -notlike '*/plugins/*'
+            }).Count
+            $junk = ($names | Where-Object {
+              $_ -eq 'appsettings.json' -or $_ -eq 'config/config.json' -or
+              $_ -like 'config/instances/*' -or
+              $_ -match '^(debug|logs|report|temp|backup)/'
+            }).Count
+            Write-Host "  maa/bin 残留 dll : $dup"
+            Write-Host "  运行期残留       : $junk"
+            $fail = $false
+            if ($n -lt 2000)  { Write-Host "! 条目数过少"; $fail = $true }
+            if ($pyc -ne 0)   { Write-Host "! 有 pyc 泄漏"; $fail = $true }
+            if ($bslash -ne 0){ Write-Host "! 有反斜杠路径"; $fail = $true }
+            if ($missing.Count -gt 0) { Write-Host "! 缺关键件"; $fail = $true }
+            if ($dup -ne 0)   { Write-Host "! 仍有两套 MaaFramework（maa/bin 里还有 dll）"; $fail = $true }
+            if ($junk -ne 0)  { Write-Host "! 有运行期残留"; $fail = $true }
+            if ($fail) { exit 1 }
+            Write-Host "产物核对通过"
+          } finally { $a.Dispose() }
 
       - name: 上传 artifact
         uses: actions/upload-artifact@v4
@@ -201,6 +291,6 @@ jobs:
             ## 已内置
 
             - MFAAvalonia v2.16.6（通用 UI）
-            - MaaFramework 5.14.3 原生库
+            - MaaFramework 5.16.1 原生库（单套，在 `runtimes/win-x64/native/`）
             - PP-OCRv6 OCR 模型
             - 嵌入式 Python 3.13 + 全部运行依赖（无需另装 Python）

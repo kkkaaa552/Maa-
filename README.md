@@ -49,7 +49,7 @@ python -m venv .venv
 # 2. 直接跑 GUI
 .\物华弥新MAA.exe
 
-# 3. 或者用 Python 手工模式调 pipeline（需要 maafw/ 目录里的原生库）
+# 3. 或者用 Python 手工模式调 pipeline（原生库走 runtimes/，maaenv.py 自己找）
 .venv\Scripts\python.exe main.py
 
 # 4. 单独验证仓库识别
@@ -83,15 +83,23 @@ python -m venv .venv
 └─ libs/ runtimes/ plugins/  MFAAvalonia 运行库（与官方 v2.16.6 一致）
 ```
 
+发布包里的目录结构与源码不完全一样，两处需要知道：
+
+- `runtimes/win-x64/native/` 是**唯一**一份 MaaFramework 原生库（见下文「包里只有一套」）；
+- `config/config.template.json` 是首装种子而非 `config.json`（见下文「首启配置」）。
+
+另外 `Assets/logo.ico`（窗口标题栏与托盘图标）由 `build.py` 从 `resource/image/logo.png`
+现场生成 8 个尺寸，不在仓库里。没有它时 MFAAvalonia 会回落到自带的内嵌 logo。
+
 ---
 
 ## 打包
 
 ```powershell
-# 完整包（含嵌入式 Python，约 250 MB）
+# 完整包（含嵌入式 Python，压缩后约 223 MB / 解压 502 MB）
 python tools\build.py 0.1.0
 
-# 不含 Python（用户需自装，约 90 MB）
+# 不含 Python（用户需自装，压缩后约 141 MB）
 python tools\build.py 0.1.0 --no-python
 
 # 只拼 install/ 不压缩
@@ -101,7 +109,43 @@ python tools\build.py 0.1.0 --no-zip
 产物在 `dist/`。CI 会在打 `v*` tag 时自动跑到 Release，见
 [`.github/workflows/install.yml`](.github/workflows/install.yml)。
 
+体积构成（压缩后，v0.1.0 实测）：`python/` 81.4 MB、`libs/` 63.9 MB、`runtimes/` 34.9 MB、
+`resource/` 31.6 MB、其他合计约 10.5 MB。
+
 打包逻辑的几个取舍写在 `tools/build.py` 顶部的 docstring 里，改之前先读一遍。
+
+### 包里只有一套 MaaFramework
+
+发布包内 MaaFramework 原生库**只有一份**，在 `runtimes/win-x64/native/`（v5.16.1，21 个 dll）。
+
+这一点值得单独说明，因为它和常见做法不同：
+
+- 项目源码里原本有两套 —— `runtimes/win-x64/native/`（随 MFAAvalonia 发布包分发，v5.14.3）
+  和 `python/Lib/site-packages/maa/bin/`（`pip install MaaFw` 装进来的，v5.16.1），各自 86 MB。
+- 打包时 `build.py` 的 `step_maa_single_source()` 把 5.16.1 那套覆盖进 `runtimes/`，
+  再把 `maa/bin/` 下的 dll 删掉，净省 86.4 MB 解压体积 / 34.5 MB 压缩体积。
+- GUI 侧读 `runtimes/`，绑定层是 `MaaFramework.Binding` 5.10.0，按**文件名**（不含版本号）
+  定位原生库，实测能正常驱动 5.16.1 —— 日志里 `MaaFramework 版本：v5.16.1`。
+- agent 侧（Python）默认读 `maa/bin/`，所以 `agent/warehouse_agent.py` 启动时会把
+  `MAAFW_BINARY_PATH` 指向 `runtimes/win-x64/native/`（外部已设了有效路径时不覆盖）。
+
+**改这一块要小心**：把 `maa/bin/` 的 dll 删掉而不设 `MAAFW_BINARY_PATH`，agent 会以
+`ModuleNotFoundError` 起不来，且两个自定义动作（作战均衡决策 / 迷踪盘求解）会**静默失效**
+—— GUI 上完全看不出来，只有 `logs/` 里有一行 Traceback。`build.py` 的自检里专门有一段
+复现这个场景：清空 `MAAFW_BINARY_PATH` 跑 `agent/warehouse_agent.py --selftest`，
+输出里有 `ModuleNotFoundError` 就判失败。
+
+### 首启配置走 config.template.json
+
+`config/config.template.json` 是 MFAAvalonia 约定的**首装种子**，不是默认配置：
+
+- 只有当目标目录里不存在任何用户配置（`config/config.json`、`config/instances/` 等）时，
+  它才会被转成 `config.json`；
+- 老用户解压覆盖新版本时，程序检测到已有配置就只读种子里的背景默认，
+  **不会覆盖用户改过的语言 / 主题 / 布局**。
+
+所以打包时写入的是 `config.template.json`（4 个键，110 B），不写 `config.json` ——
+写 `config.json` 会让下一次发版把用户的设置直接盖掉。
 
 ---
 
