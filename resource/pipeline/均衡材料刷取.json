@@ -6,7 +6,7 @@
             "lastSyncTime": 1795439480174,
             "isModifiedExternally": false,
             "isDeleted": false,
-            "filePath": "D:\\mixian\\my-maa\\resource\\base\\pipeline\\均衡材料刷取.json",
+            "filePath": "D:\\mixian\\my-maa\\resource\\pipeline\\均衡材料刷取.json",
             "savedViewport": {
                 "x": -1828,
                 "y": 189,
@@ -104,7 +104,7 @@
         }
     },
     "作战.均衡决策": {
-        "desc": "★ 决策点（Custom 作战均衡决策）。读 data/warehouse/*.json 按阈值判这轮刷哪类/哪级/哪个职业，用 override_pipeline 改「选类别/选等级/选职业」三个节点的 template，再 override_next 出去。默认 next 指向手动分支：仓库读数为空或 Custom 失败时仍按操作者选的类别继续，不卡死。param: op=decide, mode=balance|manual（由 option「刷取方式」覆盖）, level/profession（由「关卡等级」「核定牌职业」option 覆盖）",
+        "desc": "★ 决策点（Custom 作战均衡决策）。读 data/warehouse/*.json 按阈值判这轮刷哪类/哪级/哪个职业，用 override_pipeline 改「选类别/选等级/选职业」三个节点的 target，再 override_next 出去。两阶段：① 补缺——冬谷币 / 教材 / 核定牌逐项补到阈值；② 轮换——补缺走完（或三项已全达标）后仍不收尾，按 冬谷币 → 教材 → 核定牌 循环继续刷，核定牌内部再按 I→V × 五职业的 25 格队列推进。mode=manual 时保持旧行为：全达标即收尾。默认 next 指向手动分支：仓库读数为空或 Custom 失败时仍按操作者选的类别继续，不卡死。param: op=decide, mode=balance|manual（由 option「刷取方式」覆盖）, level/profession（由「关卡等级」「核定牌职业」option 覆盖）",
         "action": {
             "type": "Custom",
             "param": {
@@ -685,7 +685,7 @@
         }
     },
     "作战.达标收尾": {
-        "desc": "收尾：点「返回大厅」离开作战页，不打断后续任务队列",
+        "desc": "收尾：点「返回大厅」离开作战页，不打断后续任务队列。均衡模式（刷取方式=均衡材料刷取）下只在两种情形到达这里：刷取轮数（作战.本轮计数 max_hit）用尽，或活力值不足按「活力值用尽怎么办」的设定停止/等待/购买后收尾——不会因为材料达标而提前收尾",
         "next": [
             "作战.返回大厅"
         ],

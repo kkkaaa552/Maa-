@@ -5,13 +5,30 @@
   · `作战.进入入口`  → custom_action_param = {"op": "reset"}   （清空本任务的已刷记录）
   · `作战.均衡决策`  → custom_action_param = {"op": "decide"}  （读仓库 → 选类别/等级/职业）
 
-决策规则（照使用者给的顺序）：
+决策规则（照使用者给的顺序），分两个阶段：
+
+**阶段一 · 补缺**（只要还有任何一项低于阈值）
   1. 冬谷币      < 2,700,000 → 刷冬谷币
   2. 深度社会学  < 587       → 刷教材
   3. 核定牌：**每个职业的每一级都要达到阈值**（20/30/30/35/85 是「级别 × 职业」的矩阵，
      不是级别合计）。判定顺序：等级 I→V；同等级内按「该级当前数量最少」优先，
      数量并列时按 远击 → 轻锐 → 宿卫 → 构术 → 战略 的顺序。
   某一目标本轮已经刷过就跳过（DONE 记录），于是多轮会依次覆盖不同材料 —— 这就是「均衡」。
+
+**阶段二 · 轮换**（mode=balance 时，进入条件见下）
+  不再收尾，改按固定的 **冬谷币 → 教材 → 核定牌 → 冬谷币 → …** 顺序循环继续刷，
+  每轮一个类别；轮到核定牌时，按「等级 I→V、同级数量最少优先、并列按职业序」的全量表
+  依次取格（5 等级 × 5 职业 = 25 格轮完一轮再回到第一格），保证不会永远只刷同一格。
+  停止条件只剩两个：`作战.本轮计数` 的 max_hit（= option「刷取轮数」）用尽，或活力值不足。
+
+  进入轮换有两个触发点，都有意保留：
+  a. **三项阈值全部达标**（这正是操作者要求的「材料均大于给出的数量」那条）；
+  b. **阶段一把不足项各刷了一遍、但读数仍未达标**。原因见「数据前提」第 1 条：快照是静态
+     文件，刷完数字不会变，所以 (a) 在本轮内其实很难成立（实测冬谷币 237 万 < 270 万即如此）。
+     只认 (a) 会让轮换在本轮里永不触发，等于没有效果。所以 (b) 也进轮换，把「还要不要继续」
+     交给「刷取轮数」和活力值来兜，而不是被一份过期快照卡死。
+  mode=balance-strict 只认 (a)，保住「没全达标就不动」的旧语义。
+  mode=manual（操作者选了「手动指定」）时保持旧行为：全达标或不足项刷完即收尾。
 
 ## 三条必须写进日志的数据前提（都是实测出来的）
 
@@ -225,6 +242,76 @@ def plate_candidates(by_prof: dict[str, dict[str, int]], limits: dict
     return out
 
 
+# ── 轮换（全部达标之后继续刷） ─────────────────────────────────────────
+# 操作者指定的固定顺序：冬谷币 → 教材 → 核定牌 → 回到冬谷币 …
+ROTATION = ["冬谷币", "教材", "核定牌"]
+
+# 轮换指针：_rot_pos 指向下一个类别，_plate_pos 指向核定牌全量队列里的下一格。
+# 两者都由 op=reset 清零，同一个任务内连续推进。
+_rot_pos = 0
+_plate_pos = 0
+
+
+def rotation_reset() -> None:
+    global _rot_pos, _plate_pos
+    _rot_pos = 0
+    _plate_pos = 0
+
+
+def all_met(counts: dict[str, int], th: dict) -> bool:
+    """三项阈值是不是全都已经达到（不是「本轮是否覆盖过」）。"""
+    if counts.get("冬谷币", 0) < int(th.get("冬谷币", THRESHOLDS["冬谷币"])):
+        return False
+    if counts.get("深度社会学", 0) < int(th.get("深度社会学", THRESHOLDS["深度社会学"])):
+        return False
+    limits: dict = th.get("核定牌") or THRESHOLDS["核定牌"]
+    _by_level, by_prof = plate_totals(counts)
+    return not plate_candidates(by_prof, limits)
+
+
+def plate_cycle(by_prof: dict[str, dict[str, int]]) -> list[tuple[str, str]]:
+    """核定牌的全量队列：等级 I→V 外层，同级按数量升序、并列按职业序。共 25 格。"""
+    cyc: list[tuple[str, str]] = []
+    for roman, _zhi in LEVELS:
+        row = sorted([(by_prof.get(p, {}).get(roman, 0), i, p)
+                      for i, p in enumerate(PROFESSIONS)])
+        cyc.extend((roman, p) for _have, _i, p in row)
+    return cyc
+
+
+def rotation_pick(counts: dict[str, int], th: dict):
+    """全达标后的轮换：返回 (类别, 等级, 职业或None, 理由)，每调一次前进一格。
+
+    顺序固定为 ROTATION，核定牌那一格内部再按 plate_cycle 走满 25 格才回到下一次。
+    队列为空（仓库里一个核定牌格都没读到）时返回 None，由调用方决定收尾。
+    """
+    global _rot_pos, _plate_pos
+    category = ROTATION[_rot_pos % len(ROTATION)]
+    nth = _rot_pos + 1
+
+    if category == "核定牌":
+        _by_level, by_prof = plate_totals(counts)
+        cyc = plate_cycle(by_prof)
+        if not cyc:
+            return None
+        idx = _plate_pos % len(cyc)
+        roman, prof = cyc[idx]
+        have = by_prof.get(prof, {}).get(roman, 0)
+        why = (f"轮换第 {nth} 位 · 核定牌 {roman}({LEVEL_BY_ROMAN[roman]})·{prof}"
+               f"（当前 {have}，全量队列第 {idx + 1}/{len(cyc)} 格）")
+        _plate_pos += 1
+        _rot_pos += 1
+        return ("核定牌", roman, prof, why)
+
+    if category == "冬谷币":
+        why = f"轮换第 {nth} 位 · 冬谷币（当前 {counts.get('冬谷币', 0):,}，已达标）"
+    else:
+        why = (f"轮换第 {nth} 位 · 教材（深度社会学 当前 "
+               f"{counts.get('深度社会学', 0)}，已达标）")
+    _rot_pos += 1
+    return (category, "V", None, why)
+
+
 # ── 决策 ──────────────────────────────────────────────────────────────
 def decide(counts: dict[str, int], th: dict, done: set[str] | None = None):
     """返回 (类别, 等级罗马字, 职业或None, 理由)；全达标或已刷完返回 None。"""
@@ -284,10 +371,12 @@ def register() -> None:
             # ── reset：清本任务的已刷记录 ──
             if op == "reset":
                 DONE.clear()
+                rotation_reset()
                 log("reset：已刷记录清空，本任务重新开始均衡")
                 return ok
 
             # ── decide ──
+            mode = str(params.get("mode") or "balance")
             th = {
                 "冬谷币": params.get("donggu_limit", THRESHOLDS["冬谷币"]),
                 "深度社会学": params.get("shendu_limit", THRESHOLDS["深度社会学"]),
@@ -310,14 +399,44 @@ def register() -> None:
                 context.override_next("作战.均衡决策", ["作战.选类别"])
                 return ok
 
-            picked = decide(counts, th, DONE)
-            if picked is None:
-                log("全部达标或本轮已覆盖，结束刷取")
-                context.override_next("作战.均衡决策", ["作战.达标收尾"])
-                return ok
+            if all_met(counts, th):
+                # 三项阈值全部达到。均衡模式下不收尾，按固定顺序继续轮换刷。
+                if mode not in ("balance", "balance-strict"):
+                    log("全部达标（手动指定模式），结束刷取")
+                    context.override_next("作战.均衡决策", ["作战.达标收尾"])
+                    return ok
+                log("三项阈值均已达标 → 进入轮换：冬谷币 → 教材 → 核定牌（循环）")
+                picked = rotation_pick(counts, th)
+                if picked is None:
+                    log("核定牌队列为空（仓库没读到任何核定牌格），无法轮换 → 结束刷取")
+                    context.override_next("作战.均衡决策", ["作战.达标收尾"])
+                    return ok
+                rotation = True
+            else:
+                picked = decide(counts, th, DONE)
+                rotation = False
+                if picked is None:
+                    # 本任务的不足项都已各刷过一遍，但读数里仍有项没到阈值。
+                    # 仓库快照是静态文件（见模块头「三条数据前提」第 1 条），再判也还是这批
+                    # 结果，继续走 decide 只会立刻又返回 None。均衡模式下转轮换继续刷，
+                    # 由「刷取轮数」的 max_hit 与活力值兜住上限，不会无限跑。
+                    # mode=balance-strict 时保留旧行为：没全达标就不轮换，直接收尾。
+                    if mode == "balance":
+                        log("不足项已各刷一遍，读数未更新 → 转入轮换继续刷")
+                        picked = rotation_pick(counts, th)
+                        if picked is None:
+                            log("核定牌队列为空，无法轮换 → 结束刷取")
+                            context.override_next("作战.均衡决策", ["作战.达标收尾"])
+                            return ok
+                        rotation = True
+                    else:
+                        log("本轮目标已覆盖且未全达标（严格模式），结束刷取")
+                        context.override_next("作战.均衡决策", ["作战.达标收尾"])
+                        return ok
 
             category, roman, prof, why = picked
-            log(f"决策 → 「{category}」{roman}({LEVEL_BY_ROMAN[roman]})"
+            log(("轮换 → " if rotation else "决策 → ")
+                + f"「{category}」{roman}({LEVEL_BY_ROMAN[roman]})"
                 + (f" · {prof}" if prof else "") + f"：{why}")
 
             cat_xy = CATEGORY_XY[category]
@@ -335,14 +454,16 @@ def register() -> None:
                     "recognition": {"type": "DirectHit", "param": {}},
                     "action": {"type": "Click", "param": {"target": PROF_XY[prof]}},
                 }
-                DONE.add(f"核定牌-{roman}-{prof}")
+                if not rotation:
+                    DONE.add(f"核定牌-{roman}-{prof}")
             else:
                 # 非核定牌没有职业页签：保持直通，别让它空等
                 patch["作战.选职业"] = {
                     "recognition": {"type": "DirectHit", "param": {}},
                     "action": {"type": "DoNothing", "param": {}},
                 }
-                DONE.add(category)
+                if not rotation:
+                    DONE.add(category)
 
             context.override_pipeline(patch)
             context.override_next("作战.均衡决策", ["作战.选类别"])
@@ -369,16 +490,36 @@ def selftest() -> int:
         + "、".join(f"{r}·{p}({h}/{n})" for r, p, h, n in cands))
 
     DONE.clear()
+    rotation_reset()
     for i in range(1, 40):
         picked = decide(counts, THRESHOLDS, DONE)
         if picked is None:
-            log(f"第 {i} 轮：全部达标或本轮已覆盖 → 收尾")
+            log(f"第 {i} 轮：本轮目标已覆盖 → 阶段一结束")
             break
         c, r, prof, why = picked
         log(f"第 {i} 轮 → {c} {r}({LEVEL_BY_ROMAN[r]})"
             + (f" · {prof}" if prof else "") + f" | {why}")
         DONE.add(f"核定牌-{r}-{prof}" if c == "核定牌" else c)
     log(f"本轮共安排 {len(DONE)} 个目标：{sorted(DONE)}")
+
+    # ── 阶段二：轮换 ──
+    met = all_met(counts, THRESHOLDS)
+    log(f"是否全部达标 all_met={met}")
+    rotation_reset()
+    by_level, by_prof = plate_totals(counts)
+    cyc = plate_cycle(by_prof)
+    log(f"核定牌轮换队列 {len(cyc)} 格："
+        + "、".join(f"{r}·{p}" for r, p in cyc))
+    for i in range(1, 12):
+        p = rotation_pick(counts, THRESHOLDS)
+        if p is None:
+            log(f"轮换第 {i} 步 → 队列为空，收尾")
+            break
+        c, r, prof, why = p
+        log(f"轮换第 {i} 步 → {c} {r}({LEVEL_BY_ROMAN[r]})"
+            + (f" · {prof}" if prof else "") + f" | {why}")
+        DONE.add(f"核定牌-{r}-{prof}" if c == "核定牌" else c)
+    log(f"轮换后已安排 {len(DONE)} 个目标：{sorted(DONE)}")
     log("selftest OK")
     return 0
 
