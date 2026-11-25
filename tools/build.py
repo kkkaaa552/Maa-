@@ -509,16 +509,34 @@ def step_assets() -> None:
     也就是 MFAAvalonia 自己的 logo —— 只有 exe 的 PE 图标被换了，任务栏预览、
     标题栏、托盘仍是官方图标（2026-11-24 实测确认过这个回落）。
     """
+    # 返回值说明这一跳到底发生了什么，供自检段落据实措辞：
+    #   "ok"     —— 生成了 Assets/logo.ico
+    #   "no-pil" —— 没有 Pillow，主动跳过（解释见下）
+    #   "no-src" —— 源图不存在，跳过
+    #   "failed" —— PIL 与源图都在却生成失败（已 fail()，会拦包）
+    # 这个图标只影响「窗口标题栏 / 托盘用谁的 logo」，不影响程序能不能跑，所以
+    # 「没有 Pillow」**不该是出包的硬门槛**；但也不能像以前那样「只打一行 log、
+    # must 里又要求它必须存在」——2026-11-25 run 45541810755 就是这么整包被拒的：
+    #   [3/10] Assets/logo.ico
+    #     ! 生成失败（不影响运行）：ModuleNotFoundError: No module named 'PIL'
+    #   FAIL 缺 Assets/logo.ico
+    #   === 自检未通过（1 项）—— 不产出 zip ===
     log("[3/10] Assets/logo.ico")
     icon = ROOT / ICON_SRC
     if not icon.is_file():
         log(f"  ! 缺 {ICON_SRC}，跳过（窗口与托盘会用 MFAAvalonia 内置图标）")
-        return
+        return "no-src"
     try:
         import io
 
         from PIL import Image
-
+    except ImportError:
+        log("  ! 没有 Pillow，跳过 Assets/logo.ico（不影响运行）")
+        log("    窗口标题栏与托盘会回落到 MFAAvalonia 内置 logo；exe 的 PE 图标不受影响。")
+        log("    要出带自家图标的包：pip install pillow")
+        log("    CI 由 install.yml 的「给构建期 Python 装 Pillow」一步提供。")
+        return "no-pil"
+    try:
         sizes = [16, 24, 32, 48, 64, 96, 128, 256]
         im = Image.open(icon).convert("RGBA")
         frames = [im.resize((s, s), Image.LANCZOS) for s in sizes]
@@ -528,8 +546,11 @@ def step_assets() -> None:
         out.parent.mkdir(parents=True, exist_ok=True)
         out.write_bytes(buf.getvalue())
         log(f"  Assets/logo.ico {out.stat().st_size:,} B（{len(sizes)} 个尺寸）")
+        return "ok"
     except Exception as e:
-        log(f"  ! 生成 Assets/logo.ico 失败（不影响运行）：{type(e).__name__}: {e}")
+        # PIL 在、源图在，还失败 → 真正的缺陷，别让它悄悄出一个没图标的包。
+        fail(f"生成 Assets/logo.ico 失败：{type(e).__name__}: {e}")
+        return "failed"
 
 
 def step_config() -> None:
@@ -735,7 +756,7 @@ def main() -> int:
 
     step_ui()
     step_exe_and_icon()
-    step_assets()
+    has_icon = step_assets()
     if args.no_python:
         log("[4/10] Python 运行时 —— 按 --no-python 跳过（用户需自装 Python 3.13）")
         has_python = False
@@ -764,7 +785,6 @@ def main() -> int:
         # 单套 MaaFramework：原生库只在 runtimes 这一处，maa/bin 里应当为空
         "runtimes/win-x64/native/MaaFramework.dll",
         "config/config.template.json",
-        "Assets/logo.ico",
     ]
     for m in must:
         p = BUILD_DIR / m
@@ -772,6 +792,14 @@ def main() -> int:
             log(f"  OK   {m}")
         else:
             fail(f"缺 {m}")
+
+    # 图标是「锦上添花」，不进出包判据 —— 但必须把结论明说，别让包悄悄少个文件。
+    if has_icon == "ok":
+        log("  OK   Assets/logo.ico")
+    elif has_icon == "failed":
+        log("  FAIL Assets/logo.ico（原因见 [3/10]，已计入失败）")
+    else:
+        log(f"  --   Assets/logo.ico 未生成（{has_icon}，窗口/托盘回落内置 logo，不拦包）")
 
     # ---- 内容对账：不是「在不在」，是「对不对」 ----
     cn, ch = check_content()

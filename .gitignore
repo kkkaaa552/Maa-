@@ -79,6 +79,15 @@ HANDOFF-*.md
 .DS_Store
 Thumbs.db
 
+# ---- 临时凭据与诊断产物（绝不能进仓库）----
+# 2026-11-25 取 CI 日志时把 token 落成了仓库根下的临时文件，git status 直接把它
+# 列成未跟踪 —— 只要有人 `git add .` 就会推上去。这类文件一律不进仓库。
+.gh_token*
+*.gh_token
+.ci_log*
+_ci_log*
+_build*.log
+
 # ---- 保留 ----
 !.github/
 !.vscode/

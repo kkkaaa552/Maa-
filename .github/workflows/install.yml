@@ -79,6 +79,18 @@ jobs:
         with:
           python-version: '3.13'
 
+      # build.py 自身要用 Pillow（把 logo.png 转成 Assets/logo.ico、以及往 exe 里写
+      # 图标资源），它跑的是这个 setup-python 解释器，**不是**下面那个嵌入式 python。
+      # 2026-11-25 run 45541810755 就是这么挂的：ModuleNotFoundError: No module named
+      # 'PIL' → Assets/logo.ico 没生成 → 自检 FAIL 不产出 zip。开发机上 .venv 装了
+      # Pillow，所以本地永远复现不出来。
+      - name: 给构建期 Python 装 Pillow
+        shell: pwsh
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install "pillow>=11,<14"
+          python -c "import PIL; print('PIL', PIL.__version__)"
+
       # ---------------------------------------------------------------
       # 第一步：准备嵌入式 Python（这是官方模板没有的一步）
       # 为什么不用 setup-python 那个解释器直接进包：
@@ -238,6 +250,10 @@ jobs:
             Write-Host "  根级条目(无/)   : $root"
             $missing = @()
             # 单套 MaaFramework：原生库只在 runtimes 一处，maa/bin 里不应再有 dll
+            # Assets/logo.ico 在这里是**硬要求**：build.py 只在没有 Pillow 时才会跳过它，
+            # 而 CI 已经装了 Pillow（见「给构建期 Python 装 Pillow」）。所以这个包里
+            # 缺图标 = Pillow 那一步没生效，属于该拦的构建异常；本地开发机没装 Pillow
+            # 时跳过图标是允许的，两种口径的差别就在这里。
             foreach ($k in @('interface.json','runtimes/win-x64/native/MaaFramework.dll',
                              'runtimes/win-x64/native/MaaAgentServer.dll',
                              'python/python.exe','config/config.template.json',
