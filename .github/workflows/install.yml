@@ -334,9 +334,10 @@ jobs:
           body: |
             ## 使用说明
 
-            1. 下载下方附件 `MAA-v*-win-x86_64.zip`
-               （GitHub 会把资产名里的中文过滤掉，所以显示名是 `MAA-v0.1.0-...`；
-               附件标签上仍写着「物华弥新MAA」，指向的是同一个文件）
+            1. 下载下方附件 `MAWH-v*-win-x86_64.zip`
+               （`MAWH` = Maa + WuHua，纯 ASCII 前缀。GitHub 在上传时会无条件剥掉资产名里的
+               非 ASCII 字符，所以文件名只能用 ASCII；中文名「物华弥新MAA」放在附件标签里，
+               release 页上显示的就是中文，指向的仍是同一个文件）
             2. **解压到纯英文路径**（中文路径可能让 MaaFramework 找不到资源）
             3. 双击 `物华弥新MAA.exe`
             4. 首次运行需要在设置里指定 MuMu 的 adb 路径，或先 `adb connect 127.0.0.1:16384`
@@ -354,3 +355,34 @@ jobs:
             - MaaFramework 5.16.1 原生库（单套，在 `runtimes/win-x64/native/`）
             - PP-OCRv6 OCR 模型
             - 嵌入式 Python 3.13 + 全部运行依赖（无需另装 Python）
+
+      # 为什么需要这一步：zip 的**文件名**必须是纯 ASCII（GitHub 上传时无条件剥掉
+      # 非 ASCII，实测 物华弥新MAA-命名测试.zip → MAA-.zip），所以 tools/build.py 里
+      # DEFAULT_PKG 改成了 MAWH。但 asset 的 **label** 可以被 PATCH 成任意文本，
+      # 而 release 页面上显示给用户看的就是 label。于是：磁盘文件名 = MAWH-...（可辨认、
+      # 可搜索、跨平台不乱码），页面显示名 = 物华弥新MAA-...（中文）。
+      # 这一步是**非阻塞**的：label 只是显示层，写不进去不该让整次发布失败。
+      - name: 把附件标签写成中文名
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ needs.meta.outputs.tag }}
+        run: |
+          LABEL="物华弥新MAA-${TAG}-win-x86_64.zip"
+          ids=$(gh api "repos/${GITHUB_REPOSITORY}/releases/tags/${TAG}" \
+                  --jq '.assets[] | select(.name | endswith(".zip")) | .id' || true)
+          if [ -z "$ids" ]; then
+            echo "::warning::release ${TAG} 下没找到 .zip 资产，跳过 label 设置"
+            exit 0
+          fi
+          for id in $ids; do
+            gh api --method PATCH "repos/${GITHUB_REPOSITORY}/releases/assets/${id}" \
+              -f label="$LABEL" --jq '"  asset \(.id): name=\(.name) | label=\(.label)"' \
+              || echo "::warning::asset $id 的 label 写入失败"
+          done
+          got=$(gh api "repos/${GITHUB_REPOSITORY}/releases/tags/${TAG}" \
+                  --jq '.assets[0].label' || true)
+          echo "回读 label: ${got:-（空）}"
+          if [ "$got" != "$LABEL" ]; then
+            echo "::warning::label 期望 ${LABEL}，实际 ${got:-（空）}；页面会显示 ASCII 名，功能不受影响"
+          fi

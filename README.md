@@ -15,7 +15,9 @@
 
 ## 直接使用（下载发布包）
 
-1. 到 [Releases](../../releases) 下载 `物华弥新MAA-v*-win-x86_64.zip`
+1. 到 [Releases](../../releases) 下载 `MAWH-v*-win-x86_64.zip`
+   （`MAWH` = Maa + WuHua。GitHub 上传资产时会剥掉文件名里的非 ASCII，所以磁盘上是
+   这个 ASCII 名；release 页面上显示的中文名「物华弥新MAA-v*」是资产的 label，同一个文件）
 2. **解压到纯英文路径**（中文路径可能让 MaaFramework 找不到资源）
 3. 双击 `物华弥新MAA.exe`
 

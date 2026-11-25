@@ -62,8 +62,14 @@ ROOT = Path(__file__).resolve().parents[1]
 BUILD_DIR = ROOT / "install"
 DIST_DIR = ROOT / "dist"
 
-# 包名取 interface.json 的 name 字段；发布 zip 用它当前缀
-DEFAULT_PKG = "物华弥新MAA"
+# 发布 zip 的文件名前缀。**必须是纯 ASCII**：
+# GitHub 在上传 release 资产时会无条件剥掉文件名里的非 ASCII 字符，实测
+#   name='物华弥新MAA-命名测试.zip'  ->  存回来的 name='MAA-.zip'（中间的中文连
+#   同它两侧的字符一起被吃掉），而 label 可以被单独 PATCH 成中文。
+# 所以这里用 ASCII 前缀 MAWH（Maa + WuHua），用户下载到磁盘的文件名就是这个；
+# 想要中文显示名由 .github/workflows/install.yml 的 release job 里单独补一步
+# PATCH label 完成，那里写的是「物华弥新MAA-vX-win-x86_64.zip」。
+DEFAULT_PKG = "MAWH"
 
 # 顶层：这些目录/文件一律不进包
 EXCLUDE_TOP = {
