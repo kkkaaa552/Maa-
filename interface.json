@@ -5,7 +5,7 @@
     "title": "物华弥新 MAA",
     "icon": "resource/image/logo.png",
     "version": "0.1.0",
-    "license": "MIT",
+    "license": "GPL-3.0",
     "description": "物华弥新（`com.cipaishe.laigu`）的 MaaFramework 项目。\n\n- 画布按 720p 构建（`display_short_side: 720`），模板图取自 1280×720 实机截图，roi 与模板一一对应。\n- 任务分三组：`日常` 只做导航与识别，`派遣公司` 三条链路会改动派遣阵容、制造类还会消耗游戏内材料，`通用` 是器者征集、仓库这类独立动作。\n- 抽卡、招集、购买活力、花灰珀或券类道具，一律不在任何任务、选项或预设里。\n- 截至 0.1.0，全部节点只做过静态校验（模板齐备、引用无悬空、roi 装得下模板），尚未在实机跑过整条链路。",
     "welcome": [
         "当前为物华弥新MAA的测试版本"

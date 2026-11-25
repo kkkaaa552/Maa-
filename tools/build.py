@@ -449,8 +449,45 @@ def step_python() -> bool:
         log("    包里不会有 Python，agent 无法运行；已记为致命错误")
         return False
     n, b = copytree(src, BUILD_DIR / "python")
+    dn, db = _drop_pip_launchers()
+    n, b = n - dn, b - db
     log(f"  python/    {n:>5} 文件  {b / 1024 / 1024:>8.1f} MB")
     return True
+
+
+# pip 的 console_scripts 启动器（f2py / numpy-config / jsonschema）。
+# `pip install --target` 把它们放到 <target>/bin/ 而不是 Scripts/，每个都是
+# 108 KB 的 exe 壳，字节里嵌死**构建机**的绝对解释器路径：
+#   CI 版 : #!C:\hostedtoolcache\windows\Python\3.13.17\x64\python.exe
+#   本地版: #!D:\mixian\my-maa\.venv\Scripts\python.exe
+# 用户机器上这两个路径都不存在，实测直接 exit=1 且 stdout/stderr 全空。
+# 项目自身从不调用它们（grep f2py|numpy-config|jsonschema.exe 在 **/*.py 零命中），
+# 所以从包里剔掉：少 3 个必然报错的坏文件，省 325 KB（压缩后约 154 KB）。
+PY_LAUNCHER_DIR = "Lib/site-packages/bin"
+
+
+def _drop_pip_launchers() -> tuple[int, int]:
+    """删掉 BUILD_DIR/python/Lib/site-packages/bin/ 里的启动器，返回 (文件数, 字节数)。
+
+    同时把它们从 _copied 对账清单里摘掉——否则 check_content() 会报「拷贝后丢失」。
+    返回量由调用方从日志口径里扣掉，让每步打印的体积等于真实落盘量。
+    """
+    d = BUILD_DIR / "python" / Path(PY_LAUNCHER_DIR)
+    if not d.is_dir():
+        return 0, 0
+    dn = db = 0
+    for f in sorted(d.iterdir()):
+        if not f.is_file():
+            continue
+        rel = f.relative_to(BUILD_DIR).as_posix()
+        dn += 1
+        db += f.stat().st_size
+        f.unlink()
+        _forget(rel)
+        log(f"  剔除 pip 启动器 {rel}（内嵌构建机路径，用户机上跑不起来）")
+    if not any(d.iterdir()):
+        d.rmdir()
+    return dn, db
 
 
 def step_resource() -> None:
@@ -461,7 +498,7 @@ def step_resource() -> None:
 
 def step_code() -> None:
     log("[7/10] 代码与数据")
-    for d in ("agent", "tools", "data", "vendor"):
+    for d in ("agent", "tools", "data"):
         src = ROOT / d
         if not src.is_dir():
             log(f"  ! 缺 {d}/")

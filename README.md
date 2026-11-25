@@ -264,9 +264,12 @@ git 所以本地打包一切正常，只有 CI checkout 出来的树里没有，
 
 ## 许可
 
-- 本项目代码：见 [LICENSE](LICENSE)
+- 本项目代码：**GPL-3.0**，全文见 [LICENSE](LICENSE)
 - `libs/` `runtimes/` `plugins/` 与 `物华弥新MAA.exe` 来自
   [MFAAvalonia](https://github.com/MaaXYZ/MFAAvalonia)（GPL-3.0），随本项目一同分发
 - `resource/model/ocr/` 来自
   [MaaCommonAssets](https://github.com/MaaXYZ/MaaCommonAssets)（PP-OCRv6，按其原始许可）
+- 运行期依赖按其自身许可分发：`maafw`（LGPL-3.0）、`MaaAgentBinary`（AGPL-3.0）、
+  `opencv-python`（MIT）、`numpy`（BSD-3-Clause）、`Pillow`（HPND）、`jsonschema`（MIT），
+  各自许可原文随包保留在 `python/Lib/site-packages/*.dist-info/licenses/`
 - 游戏素材（图标、模板图）版权归《物华弥新》开发运营方所有，本项目仅作技术研究与个人使用

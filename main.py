@@ -26,10 +26,12 @@ sys.path.insert(0, str(ROOT))
 
 import maaenv  # noqa: E402  (必须早于 import maa)
 
+import maa  # noqa: E402
 import numpy as np  # noqa: E402
 from PIL import Image  # noqa: E402
 
 from maa.controller import AdbController  # noqa: E402
+from maa.library import Library  # noqa: E402
 from maa.resource import Resource  # noqa: E402
 from maa.tasker import Tasker  # noqa: E402
 from maa.toolkit import Toolkit  # noqa: E402
@@ -239,8 +241,19 @@ def attach_agent(res: Resource, ctrl: AdbController, tasker: Tasker, script: str
 
 def cmd_doctor(args) -> int:
     print("== 运行时 ==")
-    print("  原生库目录:", maaenv.MAAFW_DIR, "|", "OK" if (maaenv.MAAFW_DIR / "MaaFramework.dll").is_file() else "缺失")
-    print("  python 绑定:", maaenv.VENDOR_DIR / "maa", "|", "OK" if (maaenv.VENDOR_DIR / "maa" / "__init__.py").is_file() else "缺失")
+    # 打**生效的**原生库目录（maaenv.NATIVE_DIR = bootstrap() 的返回值），
+    # 不是无脑打 maafw/。回落顺序是 maafw/ → runtimes/win-x64/native，
+    # 发布包里没有 maafw/，旧写法会稳定输出「缺失」而库其实好好的。
+    print("  原生库目录:", maaenv.NATIVE_DIR or "(未找到)", "|",
+          "OK" if maaenv.NATIVE_DIR and (maaenv.NATIVE_DIR / "MaaFramework.dll").is_file() else "缺失")
+    # python 绑定：打印**真实导入到的**那份，不再检查 vendor/ 是否在场。
+    # 2026-11-25 删掉 vendor/ 之后，旧写法会稳定输出「缺失」——程序照跑，
+    # 但用户会以为坏了。判据换成 maa.__file__ + Library.version()。
+    print("  python 绑定:", maa.__file__)
+    try:
+        print("  MaaFramework:", Library.version())
+    except Exception as e:  # 原生库没加载成功时 version() 会抛
+        print("  MaaFramework: 取版本失败 ->", type(e).__name__, e)
     ocr_dir = maaenv.BUNDLE_DIR / "model" / "ocr"
     ocr_files = ["det.onnx", "rec.onnx", "keys.txt"]
     print("  OCR 模型:", "OK" if all((ocr_dir / f).is_file() for f in ocr_files) else f"缺失（{ocr_dir}）")

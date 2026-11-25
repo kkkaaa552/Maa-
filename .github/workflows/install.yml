@@ -275,8 +275,17 @@ jobs:
               $_ -like 'config/instances/*' -or
               $_ -match '^(debug|logs|report|temp|backup)/'
             }).Count
+            # 反面判据①：vendor/ 已删（2026-11-25）。它原是 site-packages/maa 的旧副本
+            # + 一份与 site-packages 逐字节相同的 MaaAgentBinary，压缩后占 5.1 MB。
+            # 反面判据②：pip 的 console_scripts 启动器不该出现。build.py 的
+            # _drop_pip_launchers() 会删掉 Lib/site-packages/bin/，这三个 exe 里嵌死了
+            # 构建机的绝对解释器路径，在用户机上实测 exit=1 且无任何输出。
+            $vend = ($names | Where-Object { $_ -like 'vendor/*' }).Count
+            $launch = ($names | Where-Object { $_ -like 'python/Lib/site-packages/bin/*' }).Count
             Write-Host "  maa/bin 残留 dll : $dup"
             Write-Host "  运行期残留       : $junk"
+            Write-Host "  vendor/ 条目     : $vend"
+            Write-Host "  pip 启动器条目   : $launch"
             $fail = $false
             if ($n -lt 2000)  { Write-Host "! 条目数过少"; $fail = $true }
             if ($pyc -ne 0)   { Write-Host "! 有 pyc 泄漏"; $fail = $true }
@@ -284,6 +293,8 @@ jobs:
             if ($missing.Count -gt 0) { Write-Host "! 缺关键件"; $fail = $true }
             if ($dup -ne 0)   { Write-Host "! 仍有两套 MaaFramework（maa/bin 里还有 dll）"; $fail = $true }
             if ($junk -ne 0)  { Write-Host "! 有运行期残留"; $fail = $true }
+            if ($vend -ne 0)  { Write-Host "! vendor/ 没删干净"; $fail = $true }
+            if ($launch -ne 0){ Write-Host "! pip 启动器没剔除"; $fail = $true }
             if ($fail) { exit 1 }
             Write-Host "产物核对通过"
           } finally { $a.Dispose() }
