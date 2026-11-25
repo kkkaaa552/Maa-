@@ -1,0 +1,11 @@
+# 只声明「必须逐字节一致」的文件，不改动仓库其它文本的行尾策略。
+#
+# 起因（2026-11-25 CI run 45537166342）：GitHub Actions 的 windows-latest 上
+# core.autocrlf=true，纯文本 resource/model/ocr/keys.txt 在 checkout 时被转成
+# CRLF，74,947 B -> 93,655 B；tools/configure.py --check 按字节数校验，
+# 直接返回 1，整个 build job 挂在这一步。
+#
+# 这类文件不能靠扩展名判断（keys.txt 是纯文本），必须显式声明为 binary
+# （binary 等价于 -text -diff，即禁止任何行尾转换）。
+
+resource/model/ocr/keys.txt binary
