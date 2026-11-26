@@ -55,6 +55,7 @@ DIR_WAIT = 1.8           # 切方向后的等待：切换带过渡动画，比�
 BOARD_WAIT = 12.0        # 等棋盘出现（目标点读出来）的最长秒数
 POLL = 0.35
 TARGET_VOTES = 5         # 目标点多帧投票的帧数
+MAX_RESTARTS = 3         # 主线关卡「移动次数上限」允许复位重来的次数
 
 
 def log(msg: str) -> None:
@@ -98,11 +99,30 @@ def vote_targets(grab, cells, votes=TARGET_VOTES, gap=0.12) -> frozenset:
 
 
 def calibrate_dir(grab, tap_cell, P, blocked):
-    """点一个「环上有子」的轴，用实测结果判定当前是顺时针还是逆时针。
+    """判定当前旋转方向，返回 (cw|None, P)。**优先读右下按钮，零消耗。**
 
-    方向是盘面全局状态，开局未知。挑一个顺/逆预测都非空且互不相同的轴点一次，
-    对照两种预测即可定死方向。判不出来就返回 None（调用方退回保守信念）。
+    主线关卡有「移动限制 N 次」，点一格试方向会白吃 1 步（第 1 关上限就只
+    1 次，试一下就没了）。右下 (1170,590) 的菱形按钮文字就是当前方向，
+    用模板匹配读（read_dir：同字 NCC 1.0、跨字 0.647，阈值 0.8）不消耗任何
+    移动次数，实测四张不同盘面截图全部判对。
+    读不出来（按钮被弹窗/遮罩盖住）才退回老办法：点一个「环上有子」的轴，
+    对照顺/逆两种预测定死方向。
     """
+    from mtboard import read_dir
+
+    try:
+        b = grab()
+        img = b.get("_img")
+        if img is not None:
+            d, score = read_dir(img)
+            if d is not None:
+                cw = (d == "顺")
+                log(f"方向校准：读按钮得「{d}」(NCC {score:.3f}) → 当前为{'顺' if cw else '逆'}时针，未消耗步数")
+                return cw, P
+            log(f"方向校准：按钮读不出（NCC {score:.3f}，多半被遮挡），退回点格试探")
+    except Exception as exc:
+        log(f"方向校准：读按钮异常 {exc!r}，退回点格试探")
+
     from mtboard import inner_axes, rotate
 
     for ax in sorted(inner_axes()):
@@ -128,15 +148,19 @@ def calibrate_dir(grab, tap_cell, P, blocked):
 
 def solve_once(ctl, max_steps=MAX_STEPS) -> tuple[bool, str]:
     """在棋盘页闭环求解。ctl 是 controller（有 post_screencap/post_click）。"""
-    from mtboard import CELLS, SMALL, read_board, rotate, solve_bi
+    from mtboard import (CELLS, SMALL, read_board, read_dialog_confirm,
+                         rotate, solve_bi)
 
     DIR_BTN = (1170, 590)
+    BTN_V = (771, 428)       # 超限弹窗蓝勾中心（实测 OCR V 框 757,419,25,20）
 
     def grab():
         img = ctl.post_screencap().wait().get()
         if img is None:
             raise RuntimeError("截图返回空")
-        return read_board(img)
+        b = read_board(img)
+        b["_img"] = img        # 给 read_dir 复用同一帧，不为判向多截一次图
+        return b
 
     def tap_at(x, y):
         ctl.post_click(int(x), int(y)).wait()
@@ -153,8 +177,15 @@ def solve_once(ctl, max_steps=MAX_STEPS) -> tuple[bool, str]:
             b = grab()
         except Exception:
             b = None
-        if b and (b["targets"] or b["pieces"]):
-            break
+        if b:
+            hit, dscore = read_dialog_confirm(b["_img"])
+            if hit:
+                log(f"检测到「移动次数上限」弹窗（NCC {dscore:.3f}），点确认复位重来")
+                tap_at(*BTN_V)
+                time.sleep(1.6)
+                continue
+            if b["targets"] or b["pieces"]:
+                break
         time.sleep(POLL)
     if not b:
         return False, "等不到棋盘（截图一直读不到盘面）"
@@ -187,7 +218,42 @@ def solve_once(ctl, max_steps=MAX_STEPS) -> tuple[bool, str]:
         board_cw, P = cw, P_cal
 
     miss = {}
+    restarts = 0
     for step in range(max_steps):
+        # 每步开头先看有没有「移动次数上限」弹窗：主线关卡用满次数后会弹，
+        # 此时棋盘被压暗、点格无效。不处理的话会白耗两轮重试再误判成
+        # 「轴空转」失败；正确处理是点蓝勾复位重来（次数回满、盘面回初始）。
+        try:
+            bi = grab()
+        except Exception:
+            bi = None
+        if bi:
+            hit, dscore = read_dialog_confirm(bi["_img"])
+            if hit:
+                restarts += 1
+                if restarts > MAX_RESTARTS:
+                    return False, f"移动次数上限已复位 {MAX_RESTARTS} 次仍未通关，放弃"
+                log(f"[{step}] 检测到「移动次数上限」弹窗（NCC {dscore:.3f}）"
+                    f"→ 点蓝勾复位重来（第 {restarts} 次）")
+                tap_at(*BTN_V)
+                time.sleep(1.8)
+                b = grab()
+                P, H = b["pieces"], b["hexes"]
+                T = vote_targets(grab, SMALL)
+                blocked = set(H)
+                board_cw, P_cal = calibrate_dir(grab, tap_cell, P, frozenset(blocked))
+                if board_cw is None:
+                    board_cw = True
+                    if P_cal and P_cal != P:
+                        P = P_cal
+                else:
+                    P = P_cal
+                log(f"    复位后 棋子 {sortc(P)} 目标 {sortc(T)} 六边形 {sortc(blocked)}"
+                    f" 方向{'顺' if board_cw else '逆'}")
+                if not P or not T:
+                    return False, "复位后读不到盘面或目标点"
+                continue
+
         if sorted(P) == sorted(T):
             log(f"已达成（{step} 步）：{sortc(P)}")
             return True, f"{step} 步达成"

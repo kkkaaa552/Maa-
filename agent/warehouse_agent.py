@@ -332,6 +332,18 @@ def register() -> None:
         import mizongpan
         mizongpan.register()
         log("已注册 custom action：迷踪盘求解")
+        import mizongpan_pts
+        mizongpan_pts.register()
+        log("已注册 custom action：迷踪盘点位")
+        # 选关翻找：pipeline 侧「识别失败→滑动→重新识别」的回路会被 Maafw 判成
+        # error handling loop（2026-11-26 14:48 实测），只能在 Python 里循环。
+        import mizongpan_pick
+        mizongpan_pick.register()
+        log("已注册 custom action：迷踪盘选关")
+        # 连刷：通关后停在关卡页直接选下一关，不再每关退一次大厅。
+        import mizongpan_farm
+        mizongpan_farm.register()
+        log("已注册 custom action：迷踪盘连刷")
     except Exception:
         log("迷踪盘求解 注册失败：\n" + traceback.format_exc())
 

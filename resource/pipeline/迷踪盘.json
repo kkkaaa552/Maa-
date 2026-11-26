@@ -1,0 +1,703 @@
+{
+    "$schema": "https://raw.githubusercontent.com/MaaXYZ/MaaFramework/main/schema/pipeline.schema.json",
+    "迷踪盘": {
+        "desc": "入口驱动节点。轮询「棋盘页 → 大厅 → 派遣公司 → 茶室 → 关卡选择」五级页面（棋盘页放最前，先把上一轮中断遗留的对局退出来），当前在哪一级就做那一步；next 顺序即优先级，关卡页放最前，已经进了就不再乱点。末尾「点空白」是兜底：气泡浮窗挡住页面时先点一下空地关掉再重试。on_error 统一走 迷踪盘.收尾，保证任何一环失败都能退回大厅而不是卡死。",
+        "recognition": {
+            "type": "DirectHit",
+            "param": {
+                "roi": [
+                    0,
+                    0,
+                    0,
+                    0
+                ]
+            }
+        },
+        "pre_delay": 500,
+        "timeout": 45000,
+        "next": [
+            "迷踪盘.弹窗",
+            "迷踪盘.回退",
+            "迷踪盘.关卡页",
+            "迷踪盘.点迷",
+            "迷踪盘.点店",
+            "迷踪盘.去派遣",
+            "迷踪盘.点空白"
+        ],
+        "on_error": [
+            "迷踪盘.收尾"
+        ]
+    },
+    "迷踪盘.回退": {
+        "desc": "入口回退：上一轮被中途打断时画面会停在棋盘页，此时入口的四个导航候选（关卡页/点迷/点店/去派遣）全部不命中，会直接落到「点空白」兜底 —— 在棋盘页点空地没有任何作用，连点 4 次打满 max_hit 就掉进收尾，整轮一关没刷却报成功（2026-11-26 15:28 实测实例）。本节点用 迷踪盘.棋盘.png（130x110，裁自棋盘页左下缩略盘）认棋盘页，命中后点左上返回箭头 (40,15,40,40) 退回关卡页，next 回入口重新判页面，后续就能正常走 关卡页 → 连刷。注意 action 写死 target=[40,15,40,40] 而**不是** target:true —— 棋盘页点棋盘中心等于落一子，会白耗移动次数（第 30 关上限只有 1 次）。",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    440,
+                    540,
+                    130,
+                    110
+                ],
+                "template": [
+                    "迷踪盘.棋盘.png"
+                ],
+                "threshold": 0.8
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    40,
+                    15,
+                    40,
+                    40
+                ]
+            }
+        },
+        "post_delay": 1600,
+        "timeout": 10000,
+        "max_hit": 3,
+        "next": [
+            "迷踪盘"
+        ],
+        "on_error": [
+            "迷踪盘.收尾"
+        ]
+    },
+    "迷踪盘.去派遣": {
+        "desc": "第 1 步：大厅右下「派遣公司」入口。用 派遣公司.png（105x138）而不是 OCR——与项目里 派遣.派遣公司入口 同口径，模板比 OCR 稳。roi 1050,390,230,190 装得下模板；点击 target:true 跟随命中位置。",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    1050,
+                    390,
+                    230,
+                    190
+                ],
+                "template": [
+                    "派遣公司.png"
+                ],
+                "threshold": 0.85
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": true
+            }
+        },
+        "post_delay": 2500,
+        "timeout": 10000,
+        "max_hit": 4,
+        "next": [
+            "迷踪盘"
+        ],
+        "on_error": [
+            "迷踪盘.收尾"
+        ]
+    },
+    "迷踪盘.点店": {
+        "desc": "第 2 步：派遣公司页的「茶室」邮票招牌。实测派遣公司页 roi 内 0.9815~0.9817@(985,420)，其余页面 ≤0.386，阈值 0.8 有 0.59 余量。点完等 2.5s 进茶室。",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    900,
+                    360,
+                    380,
+                    300
+                ],
+                "template": [
+                    "迷踪盘.茶室.png"
+                ],
+                "threshold": 0.8
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": true
+            }
+        },
+        "post_delay": 2500,
+        "timeout": 10000,
+        "max_hit": 4,
+        "next": [
+            "迷踪盘"
+        ],
+        "on_error": [
+            "迷踪盘"
+        ]
+    },
+    "迷踪盘.点迷": {
+        "desc": "第 3 步：茶室页圆形徽记上的「迷」（迷踪盘入口）。必须 target:true 跟随命中位置——徽记与旁边的数量气泡都会浮动，写死坐标会点到气泡上。本轮未在现有截图里取到茶室页样本，阈值 0.8 沿用 2026-11-23 实测记录（同屏 1.0、其他画面 ≤0.39），下次进茶室时补一张复验。",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    380,
+                    150,
+                    260,
+                    250
+                ],
+                "template": [
+                    "迷踪盘.入口.png"
+                ],
+                "threshold": 0.8
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": true
+            }
+        },
+        "post_delay": 2200,
+        "timeout": 10000,
+        "max_hit": 6,
+        "next": [
+            "迷踪盘"
+        ],
+        "on_error": [
+            "迷踪盘"
+        ]
+    },
+    "迷踪盘.点空白": {
+        "desc": "兜底：点茶室页左下空地，关掉误点开的物品浮窗（请调券/招募券）。排在其他候选之后，只有前面全不命中才会执行，所以不会抢导航。",
+        "recognition": {
+            "type": "DirectHit",
+            "param": {
+                "roi": [
+                    0,
+                    0,
+                    0,
+                    0
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    170,
+                    620,
+                    60,
+                    60
+                ]
+            }
+        },
+        "post_delay": 700,
+        "timeout": 6000,
+        "max_hit": 4,
+        "next": [
+            "迷踪盘"
+        ],
+        "on_error": [
+            "迷踪盘"
+        ]
+    },
+    "迷踪盘.关卡页": {
+        "desc": "关卡选择页判据：标题条「关卡选择」模板（resource/image/迷踪盘.关卡选择.png，128x40，裁自 temp/_now3.png 的 [176:216,178:306]）+ roi[150,160,240,70]。旧判据用「体验关卡」卡片模板，列表滚到第58关之后该卡片滚出固定 ROI，NCC 掉到 0.61 导致节点永不命中（2026-11-26 14:04 失败根因）。标题条不随列表滚动变化：189 张全库复测 ≥0.95 共 39 张全为关卡页，最强非同页干扰 0.7593（通关遮罩页）。注意：本机 cv2 5.1.0 的 TM_CCOEFF_NORMED 算错（随机图自匹配得 -0.068），以上数据均用 1-TM_SQDIFF_NORMED 测得。命中后交给 迷踪盘.选关 翻找目标关卡。默认（单关模式）走 迷踪盘.选关；若用户选了「迷踪盘模式=连刷第1–30关」，interface 的 option 会把本节点 next 覆盖成 [迷踪盘.连刷]，由 Python 在关内连刷。",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    150,
+                    160,
+                    240,
+                    70
+                ],
+                "template": [
+                    "迷踪盘.关卡选择.png"
+                ],
+                "threshold": 0.8
+            }
+        },
+        "timeout": 12000,
+        "next": [
+            "迷踪盘.选关"
+        ],
+        "on_error": [
+            "迷踪盘"
+        ]
+    },
+    "迷踪盘.选关": {
+        "desc": "在关卡列表里翻找目标关卡并点进去。整段翻找逻辑收在 Custom action「迷踪盘选关」（agent/mizongpan_pick.py）里：pipeline 侧的「识别失败→滑动→重新识别」回路会被 Maafw 的环路检测判成 error handling loop（2026-11-26 14:48 实测：归顶滑一次就被终止），所以只能放在 Python 里循环。列表顺序实测为「体验关卡 → 第31..60关 → 第1..30关」，已通关的沉底，动作里先连续向下拖 8 次以内归顶、再逐屏向下翻最多 20 屏，命中判据用整串正则锚定（第2关 不会命中 第32关，旧写法 expected 带短串「2关」时点到了第32关）。level 由 interface 的 option case 覆盖。",
+        "post_delay": 600,
+        "timeout": 60000,
+        "next": [
+            "迷踪盘.前往"
+        ],
+        "on_error": [
+            "迷踪盘.收尾"
+        ],
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "迷踪盘选关",
+                "custom_action_param": {
+                    "level": 0,
+                    "levels": []
+                }
+            }
+        }
+    },
+    "迷踪盘.前往": {
+        "desc": "第 6 步：选中卡片后出现在右侧大圆盘上的「前往」条——深蓝底白字（模板 222x41，模板均色 BGR [58.4,70.8,109.4]），不是红色。实测选中时 roi 内 0.9867@(835,511)（模板左上角，故按钮中心 ≈946,531），未选中 0.4420 不命中，阈值 0.8 留 0.54 余量。点它才真正进棋盘；**点完必须等 ≥1.3s**——实测等 0.9s 会停在关卡页（复检仍在关卡页），等 4s 稳定进棋盘（棋盘模板 0.9701 命中）。",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    700,
+                    460,
+                    380,
+                    130
+                ],
+                "template": [
+                    "迷踪盘.前往.png"
+                ],
+                "threshold": 0.8
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": true
+            }
+        },
+        "post_delay": 3200,
+        "timeout": 15000,
+        "next": [
+            "迷踪盘.点位"
+        ],
+        "on_error": [
+            "迷踪盘.选关"
+        ]
+    },
+    "迷踪盘.点位": {
+        "desc": "@ 点位：调 Custom action「迷踪盘点位」（agent/mizongpan_pts.py）——照攻略点位表盲点，完全不读盘。param 里的 level 由 option 覆盖；level=0（体验关卡/未指定）时动作直接返回 False，立刻落给下面的 迷踪盘.求解，不多耗一秒。点位表在 agent/mizongpan_points.json（第1~20关，来自攻略截图 OCR，每步 = [格q, 格r, 方向, 像素x, 像素y]）。成功时通关遮罩已弹出 → 交 迷踪盘.完成；失败 → 走求解器兜底，所以点位表某关不准也不会卡死。",
+        "recognition": {
+            "type": "DirectHit",
+            "param": {
+                "roi": [
+                    0,
+                    0,
+                    0,
+                    0
+                ]
+            }
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "迷踪盘点位",
+                "custom_action_param": {
+                    "level": 0
+                }
+            }
+        },
+        "post_delay": 800,
+        "timeout": 90000,
+        "next": [
+            "迷踪盘.完成"
+        ],
+        "on_error": [
+            "迷踪盘.求解"
+        ]
+    },
+    "迷踪盘.求解": {
+        "desc": "@ 求解：调 Custom action「迷踪盘求解」（agent/mizongpan.py）——读大盘棋子与六边形、左侧小盘解密点，双向 BFS 出最短点击序列，每点一下重新截图核对，不符就按实测状态重规划。注意：Custom action 内部不读 custom_action_param，下面写的 max_steps 只是文档用途，真正的上限是 mizongpan.MAX_STEPS=24。成功返回时「完成」遮罩已弹出；失败返回 False 走 迷踪盘.收尾 退回大厅，不会卡在棋盘上。",
+        "recognition": {
+            "type": "DirectHit",
+            "param": {
+                "roi": [
+                    0,
+                    0,
+                    0,
+                    0
+                ]
+            }
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "迷踪盘求解",
+                "custom_action_param": {
+                    "max_steps": 24
+                }
+            }
+        },
+        "post_delay": 800,
+        "timeout": 120000,
+        "next": [
+            "迷踪盘.完成"
+        ],
+        "on_error": [
+            "迷踪盘.收尾"
+        ]
+    },
+    "迷踪盘.完成": {
+        "desc": "通关遮罩上的「完成」书法字。实测通关页 1.0000@(728,368)，关卡页 0.1656，阈值 0.7 有余量。点它返回关卡选择页。timeout 给 30s：最后一手到遮罩淡入之间有一段动画。即便没读到也不影响收尾，on_error 同样走 迷踪盘.收尾。",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    650,
+                    320,
+                    420,
+                    220
+                ],
+                "template": [
+                    "迷踪盘.完成.png"
+                ],
+                "threshold": 0.7
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": true
+            }
+        },
+        "post_delay": 2000,
+        "timeout": 30000,
+        "next": [
+            "迷踪盘.收尾"
+        ],
+        "on_error": [
+            "迷踪盘.收尾"
+        ]
+    },
+    "迷踪盘.收尾": {
+        "desc": "收尾循环的驱动节点：本身不做任何事，只把「当前在哪一页」交给下面 6 个页面断言去判，命中的那个负责退一级并把控制权交回本节点，一直循环到大厅断言命中为止。为什么要这么写：实测（maafw.log）next 列表的等待预算用的是**上一个成功节点的 timeout**，不是候选节点自己的 timeout——`Task timeout [pretask.name=迷踪盘.收尾] [duration_since(start_clock)=20330ms] [pretask.reco_timeout=20000ms]`，所以给候选写 timeout:3000 完全不起作用，单个候选的 next 会一路等到默认值再以 Task timeout 失败。把 6 个断言并进同一个 next 列表后，每轮按顺序试一遍，当前页那个当轮就命中，不白等。",
+        "recognition": {
+            "type": "DirectHit",
+            "param": {
+                "roi": [
+                    0,
+                    0,
+                    0,
+                    0
+                ]
+            }
+        },
+        "pre_delay": 500,
+        "timeout": 40000,
+        "next": [
+            "迷踪盘.收尾.弹窗",
+            "迷踪盘.收尾.完成",
+            "迷踪盘.收尾.棋盘",
+            "迷踪盘.收尾.退关卡页",
+            "迷踪盘.收尾.退茶室",
+            "迷踪盘.收尾.退派遣",
+            "迷踪盘.收尾.大厅"
+        ],
+        "on_error": [
+            "迷踪盘.收尾.大厅"
+        ]
+    },
+    "迷踪盘.收尾.弹窗": {
+        "desc": "兜底：主线关卡用满移动次数后弹出的「已达到移动次数上限，是否重新开始?」模态框。**必须排在收尾候选的第一位**——弹窗盖住棋盘时左上返回箭头点不动，若让 收尾.棋盘 先命中，它会一直点无效位置直到 max_hit 耗尽，再回到 收尾 又命中棋盘，框架就报 `error handling loop detected [node.name=迷踪盘.收尾]`（2026-11-25 19:11 第 1 关实机就是这个死法）。识别用弹窗蓝色 V 按钮模板：实测弹窗页 1.0000，其余十一张（棋盘/关卡页/大厅/通关遮罩/茶室页）≤0.1990，阈值 0.8 有 0.6 余量。点 V 会让盘面复位、移动次数回满。",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    660,
+                    380,
+                    220,
+                    100
+                ],
+                "template": [
+                    "迷踪盘.弹窗确认.png"
+                ],
+                "threshold": 0.8
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": true
+            }
+        },
+        "post_delay": 1800,
+        "timeout": 40000,
+        "max_hit": 3,
+        "next": [
+            "迷踪盘.收尾"
+        ],
+        "on_error": [
+            "迷踪盘.收尾"
+        ]
+    },
+    "迷踪盘.收尾.完成": {
+        "desc": "仍停在通关遮罩上（求解成功但 迷踪盘.完成 节点异常时会出现）：点「完成」回关卡选择页，再交回驱动节点。max_hit 2 兜住重复点击。**必须排在 收尾.棋盘 前面**——实测通关页上「完成」与「棋盘（悔按钮）」两个模板同时 1.0000 命中，棋盘排前面会先去点返回箭头，把通关遮罩跳过去。",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    650,
+                    320,
+                    420,
+                    220
+                ],
+                "template": [
+                    "迷踪盘.完成.png"
+                ],
+                "threshold": 0.7
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": true
+            }
+        },
+        "post_delay": 2200,
+        "timeout": 40000,
+        "max_hit": 2,
+        "next": [
+            "迷踪盘.收尾"
+        ],
+        "on_error": [
+            "迷踪盘.收尾"
+        ]
+    },
+    "迷踪盘.收尾.棋盘": {
+        "desc": "棋盘页出口：断言当前确实在棋盘上（左下「悔」按钮做模板，实测棋盘页 0.9980@(464,556) / 关卡页 0.0298），然后点左上返回箭头回关卡选择页。补这个节点的原因：求解器一旦没真正通关，盘面就停在棋盘页，而原来的收尾候选在这一页全部不匹配，只能干等超时失败。",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    440,
+                    540,
+                    130,
+                    110
+                ],
+                "template": [
+                    "迷踪盘.棋盘.png"
+                ],
+                "threshold": 0.8
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    40,
+                    15,
+                    40,
+                    40
+                ]
+            }
+        },
+        "post_delay": 1800,
+        "timeout": 40000,
+        "max_hit": 3,
+        "next": [
+            "迷踪盘.收尾"
+        ],
+        "on_error": [
+            "迷踪盘.收尾"
+        ]
+    },
+    "迷踪盘.收尾.退关卡页": {
+        "desc": "在关卡选择页（左上「关卡选择」标题条可见，不随列表滚动变化）：点左上返回退到茶室。判据与 迷踪盘.关卡页 同模板同 roi，2026-11-26 复测 关卡页 39 张 ≥0.95 / 最强干扰 0.7593。max_hit 3 防死循环。",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    150,
+                    160,
+                    240,
+                    70
+                ],
+                "template": [
+                    "迷踪盘.关卡选择.png"
+                ],
+                "threshold": 0.8
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    40,
+                    15,
+                    40,
+                    40
+                ]
+            }
+        },
+        "post_delay": 1800,
+        "timeout": 40000,
+        "max_hit": 3,
+        "next": [
+            "迷踪盘.收尾"
+        ],
+        "on_error": [
+            "迷踪盘.收尾"
+        ]
+    },
+    "迷踪盘.收尾.退茶室": {
+        "desc": "在茶室页（圆形徽记「迷」可见）：点左上返回退到派遣公司页。",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    380,
+                    150,
+                    260,
+                    250
+                ],
+                "template": [
+                    "迷踪盘.入口.png"
+                ],
+                "threshold": 0.8
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    40,
+                    15,
+                    40,
+                    40
+                ]
+            }
+        },
+        "post_delay": 1800,
+        "timeout": 40000,
+        "max_hit": 3,
+        "next": [
+            "迷踪盘.收尾"
+        ],
+        "on_error": [
+            "迷踪盘.收尾"
+        ]
+    },
+    "迷踪盘.收尾.退派遣": {
+        "desc": "在派遣公司页（「茶室」邮票招牌可见，实测 0.9815）：点左上返回回大厅。",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    900,
+                    360,
+                    380,
+                    300
+                ],
+                "template": [
+                    "迷踪盘.茶室.png"
+                ],
+                "threshold": 0.8
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    40,
+                    15,
+                    40,
+                    40
+                ]
+            }
+        },
+        "post_delay": 1800,
+        "timeout": 40000,
+        "max_hit": 3,
+        "next": [
+            "迷踪盘.收尾"
+        ],
+        "on_error": [
+            "迷踪盘.收尾"
+        ]
+    },
+    "迷踪盘.收尾.大厅": {
+        "desc": "终止条件：大厅右下「任务」按钮 OCR 命中即收尾完成（next 为空 = 任务正常结束）。**必须放在驱动节点 next 列表的最后**——前面几项都不中才会轮到它，所以在关卡页/茶室/派遣页上不会误判成已回大厅。roi 与 00_common.json 的 WaitHall/ReturnHall 同口径。",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1120,
+                    630,
+                    150,
+                    70
+                ],
+                "expected": [
+                    "任务",
+                    "任"
+                ]
+            }
+        },
+        "timeout": 40000,
+        "next": []
+    },
+    "迷踪盘.下一关": {
+        "desc": "连刷模式的中转节点：点完「完成」后人已在关卡选择页，这里什么都不做，只把控制权交回 `迷踪盘.选关`，由它把进度推到下一关。为什么要这个空节点：`迷踪盘.完成.next` 直接写 `迷踪盘.选关` 也可以，但那样单关模式（完成→收尾退大厅）与连刷模式要覆盖同一个字段；单独留一个中转节点，连刷模式只需 override 完成节点的 next，语义更清楚，日志里也能看见每关一个转换。注意这是 **next** 回路 —— Maafw 的 error handling loop 检测只管 on_error，next 回路是官方支持的正常循环写法（现网 `迷踪盘.点店.next=['迷踪盘']` 就是）。",
+        "recognition": {
+            "type": "DirectHit",
+            "param": {
+                "roi": [
+                    0,
+                    0,
+                    0,
+                    0
+                ]
+            }
+        },
+        "action": {
+            "type": "DoNothing"
+        },
+        "post_delay": 200,
+        "timeout": 60000,
+        "next": [
+            "迷踪盘.选关"
+        ],
+        "on_error": [
+            "迷踪盘.收尾"
+        ]
+    },
+    "迷踪盘.弹窗": {
+        "desc": "「已达到移动次数上限，是否重新开始?」弹窗的出口。点位/求解把移动次数点满时会弹它，弹窗盖住整屏，棋盘页/关卡页/入口的模板全都识别不到，不处理就会连点 `迷踪盘.点空白` 打满 max_hit 再掉收尾（2026-11-26 14:01 那次 136.9s 假成功就是这个模式）。判据用 OCR 而不是模板：resource/image/迷踪盘.弹窗确认.png 是旧样式的 158×50 蓝底面板，2026-11-26 15:53 实测当前弹窗只剩两个文字按钮（X box=[493,411,31,33]、V box=[758,422,20,16]），该模板全图最高只有 0.5112。动作点 X（不重新开始）退回棋盘页，再由 `迷踪盘.回退` 点返回箭头回关卡页。",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    430,
+                    280,
+                    440,
+                    180
+                ],
+                "expected": [
+                    "已达到移动次数上限"
+                ],
+                "threshold": 0.6
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    488,
+                    407,
+                    40,
+                    40
+                ]
+            }
+        },
+        "post_delay": 900,
+        "timeout": 8000,
+        "max_hit": 3,
+        "next": [
+            "迷踪盘"
+        ],
+        "on_error": [
+            "迷踪盘"
+        ]
+    }
+}

@@ -4,7 +4,7 @@
     "label": "物华弥新小助手",
     "title": "物华弥新 MAA",
     "icon": "resource/image/logo.png",
-    "version": "0.1.0",
+    "version": "0.1.1",
     "license": "GPL-3.0",
     "description": "物华弥新（`com.cipaishe.laigu`）的 MaaFramework 项目。\n\n- 画布按 720p 构建（`display_short_side: 720`），模板图取自 1280×720 实机截图，roi 与模板一一对应。\n- 任务分三组：`日常` 只做导航与识别，`派遣公司` 三条链路会改动派遣阵容、制造类还会消耗游戏内材料，`通用` 是器者征集、仓库这类独立动作。\n- 抽卡、招集、购买活力、花灰珀或券类道具，一律不在任何任务、选项或预设里。\n- 截至 0.1.0，全部节点只做过静态校验（模板齐备、引用无悬空、roi 装得下模板），尚未在实机跑过整条链路。",
     "welcome": [
@@ -72,6 +72,12 @@
             "name": "作战",
             "label": "作战（会消耗活力值）",
             "description": "均衡刷取：按仓库识别结果自动决定刷冬谷币 / 教材 / 核定牌。默认活力不足即停止，不购买、不等待；只有显式选「购买活力值」才会点购买入口。抽卡、征集、商亭一律不在本组内。",
+            "default_expand": true
+        },
+        {
+            "name": "迷踪盘",
+            "label": "迷踪盘",
+            "description": "茶室里的转动盘小游戏。读大盘棋子 + 左侧小盘解密点，双向 BFS 求最短点击序列，每点一下重新截图核对。只做导航与点击格点，不消耗活力、货币或任何材料。",
             "default_expand": true
         }
     ],
@@ -203,6 +209,23 @@
                 "活力值用尽怎么办",
                 "购买活力值次数"
             ]
+        },
+        {
+            "name": "迷踪盘",
+            "label": "迷踪盘",
+            "controller": [
+                "安卓端"
+            ],
+            "entry": "迷踪盘",
+            "default_check": false,
+            "group": [
+                "迷踪盘"
+            ],
+            "option": [
+                "迷踪盘关卡",
+                "迷踪盘连刷"
+            ],
+            "description": "按自己需求选择合适的模式"
         }
     ],
     "option": {
@@ -842,6 +865,1215 @@
                     }
                 }
             ]
+        },
+        "迷踪盘关卡": {
+            "type": "select",
+            "label": "迷踪盘关卡",
+            "default_case": "第1关",
+            "cases": [
+                {
+                    "name": "第1关",
+                    "label": "第1关",
+                    "pipeline_override": {
+                        "迷踪盘.选关": {
+                            "action": {
+                                "type": "Custom",
+                                "param": {
+                                    "custom_action": "迷踪盘选关",
+                                    "custom_action_param": {
+                                        "level": 1
+                                    }
+                                }
+                            },
+                            "post_delay": 600,
+                            "timeout": 60000,
+                            "next": [
+                                "迷踪盘.前往"
+                            ],
+                            "on_error": [
+                                "迷踪盘.收尾"
+                            ]
+                        },
+                        "迷踪盘.点位": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "level": 1
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "第2关",
+                    "label": "第2关",
+                    "pipeline_override": {
+                        "迷踪盘.选关": {
+                            "action": {
+                                "type": "Custom",
+                                "param": {
+                                    "custom_action": "迷踪盘选关",
+                                    "custom_action_param": {
+                                        "level": 2
+                                    }
+                                }
+                            },
+                            "post_delay": 600,
+                            "timeout": 60000,
+                            "next": [
+                                "迷踪盘.前往"
+                            ],
+                            "on_error": [
+                                "迷踪盘.收尾"
+                            ]
+                        },
+                        "迷踪盘.点位": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "level": 2
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "第3关",
+                    "label": "第3关",
+                    "pipeline_override": {
+                        "迷踪盘.选关": {
+                            "action": {
+                                "type": "Custom",
+                                "param": {
+                                    "custom_action": "迷踪盘选关",
+                                    "custom_action_param": {
+                                        "level": 3
+                                    }
+                                }
+                            },
+                            "post_delay": 600,
+                            "timeout": 60000,
+                            "next": [
+                                "迷踪盘.前往"
+                            ],
+                            "on_error": [
+                                "迷踪盘.收尾"
+                            ]
+                        },
+                        "迷踪盘.点位": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "level": 3
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "第4关",
+                    "label": "第4关",
+                    "pipeline_override": {
+                        "迷踪盘.选关": {
+                            "action": {
+                                "type": "Custom",
+                                "param": {
+                                    "custom_action": "迷踪盘选关",
+                                    "custom_action_param": {
+                                        "level": 4
+                                    }
+                                }
+                            },
+                            "post_delay": 600,
+                            "timeout": 60000,
+                            "next": [
+                                "迷踪盘.前往"
+                            ],
+                            "on_error": [
+                                "迷踪盘.收尾"
+                            ]
+                        },
+                        "迷踪盘.点位": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "level": 4
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "第5关",
+                    "label": "第5关",
+                    "pipeline_override": {
+                        "迷踪盘.选关": {
+                            "action": {
+                                "type": "Custom",
+                                "param": {
+                                    "custom_action": "迷踪盘选关",
+                                    "custom_action_param": {
+                                        "level": 5
+                                    }
+                                }
+                            },
+                            "post_delay": 600,
+                            "timeout": 60000,
+                            "next": [
+                                "迷踪盘.前往"
+                            ],
+                            "on_error": [
+                                "迷踪盘.收尾"
+                            ]
+                        },
+                        "迷踪盘.点位": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "level": 5
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "第6关",
+                    "label": "第6关",
+                    "pipeline_override": {
+                        "迷踪盘.选关": {
+                            "action": {
+                                "type": "Custom",
+                                "param": {
+                                    "custom_action": "迷踪盘选关",
+                                    "custom_action_param": {
+                                        "level": 6
+                                    }
+                                }
+                            },
+                            "post_delay": 600,
+                            "timeout": 60000,
+                            "next": [
+                                "迷踪盘.前往"
+                            ],
+                            "on_error": [
+                                "迷踪盘.收尾"
+                            ]
+                        },
+                        "迷踪盘.点位": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "level": 6
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "第7关",
+                    "label": "第7关",
+                    "pipeline_override": {
+                        "迷踪盘.选关": {
+                            "action": {
+                                "type": "Custom",
+                                "param": {
+                                    "custom_action": "迷踪盘选关",
+                                    "custom_action_param": {
+                                        "level": 7
+                                    }
+                                }
+                            },
+                            "post_delay": 600,
+                            "timeout": 60000,
+                            "next": [
+                                "迷踪盘.前往"
+                            ],
+                            "on_error": [
+                                "迷踪盘.收尾"
+                            ]
+                        },
+                        "迷踪盘.点位": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "level": 7
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "第8关",
+                    "label": "第8关",
+                    "pipeline_override": {
+                        "迷踪盘.选关": {
+                            "action": {
+                                "type": "Custom",
+                                "param": {
+                                    "custom_action": "迷踪盘选关",
+                                    "custom_action_param": {
+                                        "level": 8
+                                    }
+                                }
+                            },
+                            "post_delay": 600,
+                            "timeout": 60000,
+                            "next": [
+                                "迷踪盘.前往"
+                            ],
+                            "on_error": [
+                                "迷踪盘.收尾"
+                            ]
+                        },
+                        "迷踪盘.点位": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "level": 8
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "第9关",
+                    "label": "第9关",
+                    "pipeline_override": {
+                        "迷踪盘.选关": {
+                            "action": {
+                                "type": "Custom",
+                                "param": {
+                                    "custom_action": "迷踪盘选关",
+                                    "custom_action_param": {
+                                        "level": 9
+                                    }
+                                }
+                            },
+                            "post_delay": 600,
+                            "timeout": 60000,
+                            "next": [
+                                "迷踪盘.前往"
+                            ],
+                            "on_error": [
+                                "迷踪盘.收尾"
+                            ]
+                        },
+                        "迷踪盘.点位": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "level": 9
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "第10关",
+                    "label": "第10关",
+                    "pipeline_override": {
+                        "迷踪盘.选关": {
+                            "action": {
+                                "type": "Custom",
+                                "param": {
+                                    "custom_action": "迷踪盘选关",
+                                    "custom_action_param": {
+                                        "level": 10
+                                    }
+                                }
+                            },
+                            "post_delay": 600,
+                            "timeout": 60000,
+                            "next": [
+                                "迷踪盘.前往"
+                            ],
+                            "on_error": [
+                                "迷踪盘.收尾"
+                            ]
+                        },
+                        "迷踪盘.点位": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "level": 10
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "第11关",
+                    "label": "第11关",
+                    "pipeline_override": {
+                        "迷踪盘.选关": {
+                            "action": {
+                                "type": "Custom",
+                                "param": {
+                                    "custom_action": "迷踪盘选关",
+                                    "custom_action_param": {
+                                        "level": 11
+                                    }
+                                }
+                            },
+                            "post_delay": 600,
+                            "timeout": 60000,
+                            "next": [
+                                "迷踪盘.前往"
+                            ],
+                            "on_error": [
+                                "迷踪盘.收尾"
+                            ]
+                        },
+                        "迷踪盘.点位": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "level": 11
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "第12关",
+                    "label": "第12关",
+                    "pipeline_override": {
+                        "迷踪盘.选关": {
+                            "action": {
+                                "type": "Custom",
+                                "param": {
+                                    "custom_action": "迷踪盘选关",
+                                    "custom_action_param": {
+                                        "level": 12
+                                    }
+                                }
+                            },
+                            "post_delay": 600,
+                            "timeout": 60000,
+                            "next": [
+                                "迷踪盘.前往"
+                            ],
+                            "on_error": [
+                                "迷踪盘.收尾"
+                            ]
+                        },
+                        "迷踪盘.点位": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "level": 12
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "第13关",
+                    "label": "第13关",
+                    "pipeline_override": {
+                        "迷踪盘.选关": {
+                            "action": {
+                                "type": "Custom",
+                                "param": {
+                                    "custom_action": "迷踪盘选关",
+                                    "custom_action_param": {
+                                        "level": 13
+                                    }
+                                }
+                            },
+                            "post_delay": 600,
+                            "timeout": 60000,
+                            "next": [
+                                "迷踪盘.前往"
+                            ],
+                            "on_error": [
+                                "迷踪盘.收尾"
+                            ]
+                        },
+                        "迷踪盘.点位": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "level": 13
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "第14关",
+                    "label": "第14关",
+                    "pipeline_override": {
+                        "迷踪盘.选关": {
+                            "action": {
+                                "type": "Custom",
+                                "param": {
+                                    "custom_action": "迷踪盘选关",
+                                    "custom_action_param": {
+                                        "level": 14
+                                    }
+                                }
+                            },
+                            "post_delay": 600,
+                            "timeout": 60000,
+                            "next": [
+                                "迷踪盘.前往"
+                            ],
+                            "on_error": [
+                                "迷踪盘.收尾"
+                            ]
+                        },
+                        "迷踪盘.点位": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "level": 14
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "第15关",
+                    "label": "第15关",
+                    "pipeline_override": {
+                        "迷踪盘.选关": {
+                            "action": {
+                                "type": "Custom",
+                                "param": {
+                                    "custom_action": "迷踪盘选关",
+                                    "custom_action_param": {
+                                        "level": 15
+                                    }
+                                }
+                            },
+                            "post_delay": 600,
+                            "timeout": 60000,
+                            "next": [
+                                "迷踪盘.前往"
+                            ],
+                            "on_error": [
+                                "迷踪盘.收尾"
+                            ]
+                        },
+                        "迷踪盘.点位": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "level": 15
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "第16关",
+                    "label": "第16关",
+                    "pipeline_override": {
+                        "迷踪盘.选关": {
+                            "action": {
+                                "type": "Custom",
+                                "param": {
+                                    "custom_action": "迷踪盘选关",
+                                    "custom_action_param": {
+                                        "level": 16
+                                    }
+                                }
+                            },
+                            "post_delay": 600,
+                            "timeout": 60000,
+                            "next": [
+                                "迷踪盘.前往"
+                            ],
+                            "on_error": [
+                                "迷踪盘.收尾"
+                            ]
+                        },
+                        "迷踪盘.点位": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "level": 16
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "第17关",
+                    "label": "第17关",
+                    "pipeline_override": {
+                        "迷踪盘.选关": {
+                            "action": {
+                                "type": "Custom",
+                                "param": {
+                                    "custom_action": "迷踪盘选关",
+                                    "custom_action_param": {
+                                        "level": 17
+                                    }
+                                }
+                            },
+                            "post_delay": 600,
+                            "timeout": 60000,
+                            "next": [
+                                "迷踪盘.前往"
+                            ],
+                            "on_error": [
+                                "迷踪盘.收尾"
+                            ]
+                        },
+                        "迷踪盘.点位": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "level": 17
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "第18关",
+                    "label": "第18关",
+                    "pipeline_override": {
+                        "迷踪盘.选关": {
+                            "action": {
+                                "type": "Custom",
+                                "param": {
+                                    "custom_action": "迷踪盘选关",
+                                    "custom_action_param": {
+                                        "level": 18
+                                    }
+                                }
+                            },
+                            "post_delay": 600,
+                            "timeout": 60000,
+                            "next": [
+                                "迷踪盘.前往"
+                            ],
+                            "on_error": [
+                                "迷踪盘.收尾"
+                            ]
+                        },
+                        "迷踪盘.点位": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "level": 18
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "第19关",
+                    "label": "第19关",
+                    "pipeline_override": {
+                        "迷踪盘.选关": {
+                            "action": {
+                                "type": "Custom",
+                                "param": {
+                                    "custom_action": "迷踪盘选关",
+                                    "custom_action_param": {
+                                        "level": 19
+                                    }
+                                }
+                            },
+                            "post_delay": 600,
+                            "timeout": 60000,
+                            "next": [
+                                "迷踪盘.前往"
+                            ],
+                            "on_error": [
+                                "迷踪盘.收尾"
+                            ]
+                        },
+                        "迷踪盘.点位": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "level": 19
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "第20关",
+                    "label": "第20关",
+                    "pipeline_override": {
+                        "迷踪盘.选关": {
+                            "action": {
+                                "type": "Custom",
+                                "param": {
+                                    "custom_action": "迷踪盘选关",
+                                    "custom_action_param": {
+                                        "level": 20
+                                    }
+                                }
+                            },
+                            "post_delay": 600,
+                            "timeout": 60000,
+                            "next": [
+                                "迷踪盘.前往"
+                            ],
+                            "on_error": [
+                                "迷踪盘.收尾"
+                            ]
+                        },
+                        "迷踪盘.点位": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "level": 20
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "第21关",
+                    "label": "第21关",
+                    "pipeline_override": {
+                        "迷踪盘.选关": {
+                            "action": {
+                                "type": "Custom",
+                                "param": {
+                                    "custom_action": "迷踪盘选关",
+                                    "custom_action_param": {
+                                        "level": 21
+                                    }
+                                }
+                            },
+                            "post_delay": 600,
+                            "timeout": 60000,
+                            "next": [
+                                "迷踪盘.前往"
+                            ],
+                            "on_error": [
+                                "迷踪盘.收尾"
+                            ]
+                        },
+                        "迷踪盘.点位": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "level": 21
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "第22关",
+                    "label": "第22关",
+                    "pipeline_override": {
+                        "迷踪盘.选关": {
+                            "action": {
+                                "type": "Custom",
+                                "param": {
+                                    "custom_action": "迷踪盘选关",
+                                    "custom_action_param": {
+                                        "level": 22
+                                    }
+                                }
+                            },
+                            "post_delay": 600,
+                            "timeout": 60000,
+                            "next": [
+                                "迷踪盘.前往"
+                            ],
+                            "on_error": [
+                                "迷踪盘.收尾"
+                            ]
+                        },
+                        "迷踪盘.点位": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "level": 22
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "第23关",
+                    "label": "第23关",
+                    "pipeline_override": {
+                        "迷踪盘.选关": {
+                            "action": {
+                                "type": "Custom",
+                                "param": {
+                                    "custom_action": "迷踪盘选关",
+                                    "custom_action_param": {
+                                        "level": 23
+                                    }
+                                }
+                            },
+                            "post_delay": 600,
+                            "timeout": 60000,
+                            "next": [
+                                "迷踪盘.前往"
+                            ],
+                            "on_error": [
+                                "迷踪盘.收尾"
+                            ]
+                        },
+                        "迷踪盘.点位": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "level": 23
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "第24关",
+                    "label": "第24关",
+                    "pipeline_override": {
+                        "迷踪盘.选关": {
+                            "action": {
+                                "type": "Custom",
+                                "param": {
+                                    "custom_action": "迷踪盘选关",
+                                    "custom_action_param": {
+                                        "level": 24
+                                    }
+                                }
+                            },
+                            "post_delay": 600,
+                            "timeout": 60000,
+                            "next": [
+                                "迷踪盘.前往"
+                            ],
+                            "on_error": [
+                                "迷踪盘.收尾"
+                            ]
+                        },
+                        "迷踪盘.点位": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "level": 24
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "第25关",
+                    "label": "第25关",
+                    "pipeline_override": {
+                        "迷踪盘.选关": {
+                            "action": {
+                                "type": "Custom",
+                                "param": {
+                                    "custom_action": "迷踪盘选关",
+                                    "custom_action_param": {
+                                        "level": 25
+                                    }
+                                }
+                            },
+                            "post_delay": 600,
+                            "timeout": 60000,
+                            "next": [
+                                "迷踪盘.前往"
+                            ],
+                            "on_error": [
+                                "迷踪盘.收尾"
+                            ]
+                        },
+                        "迷踪盘.点位": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "level": 25
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "第26关",
+                    "label": "第26关",
+                    "pipeline_override": {
+                        "迷踪盘.选关": {
+                            "action": {
+                                "type": "Custom",
+                                "param": {
+                                    "custom_action": "迷踪盘选关",
+                                    "custom_action_param": {
+                                        "level": 26
+                                    }
+                                }
+                            },
+                            "post_delay": 600,
+                            "timeout": 60000,
+                            "next": [
+                                "迷踪盘.前往"
+                            ],
+                            "on_error": [
+                                "迷踪盘.收尾"
+                            ]
+                        },
+                        "迷踪盘.点位": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "level": 26
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "第27关",
+                    "label": "第27关",
+                    "pipeline_override": {
+                        "迷踪盘.选关": {
+                            "action": {
+                                "type": "Custom",
+                                "param": {
+                                    "custom_action": "迷踪盘选关",
+                                    "custom_action_param": {
+                                        "level": 27
+                                    }
+                                }
+                            },
+                            "post_delay": 600,
+                            "timeout": 60000,
+                            "next": [
+                                "迷踪盘.前往"
+                            ],
+                            "on_error": [
+                                "迷踪盘.收尾"
+                            ]
+                        },
+                        "迷踪盘.点位": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "level": 27
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "第28关",
+                    "label": "第28关",
+                    "pipeline_override": {
+                        "迷踪盘.选关": {
+                            "action": {
+                                "type": "Custom",
+                                "param": {
+                                    "custom_action": "迷踪盘选关",
+                                    "custom_action_param": {
+                                        "level": 28
+                                    }
+                                }
+                            },
+                            "post_delay": 600,
+                            "timeout": 60000,
+                            "next": [
+                                "迷踪盘.前往"
+                            ],
+                            "on_error": [
+                                "迷踪盘.收尾"
+                            ]
+                        },
+                        "迷踪盘.点位": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "level": 28
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "第29关",
+                    "label": "第29关",
+                    "pipeline_override": {
+                        "迷踪盘.选关": {
+                            "action": {
+                                "type": "Custom",
+                                "param": {
+                                    "custom_action": "迷踪盘选关",
+                                    "custom_action_param": {
+                                        "level": 29
+                                    }
+                                }
+                            },
+                            "post_delay": 600,
+                            "timeout": 60000,
+                            "next": [
+                                "迷踪盘.前往"
+                            ],
+                            "on_error": [
+                                "迷踪盘.收尾"
+                            ]
+                        },
+                        "迷踪盘.点位": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "level": 29
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "第30关",
+                    "label": "第30关",
+                    "pipeline_override": {
+                        "迷踪盘.选关": {
+                            "action": {
+                                "type": "Custom",
+                                "param": {
+                                    "custom_action": "迷踪盘选关",
+                                    "custom_action_param": {
+                                        "level": 30
+                                    }
+                                }
+                            },
+                            "post_delay": 600,
+                            "timeout": 60000,
+                            "next": [
+                                "迷踪盘.前往"
+                            ],
+                            "on_error": [
+                                "迷踪盘.收尾"
+                            ]
+                        },
+                        "迷踪盘.点位": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "level": 30
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        "迷踪盘连刷": {
+            "type": "select",
+            "default_case": "不连刷（按上面的关卡单刷）",
+            "cases": [
+                {
+                    "name": "不连刷（按上面的关卡单刷）",
+                    "label": "不连刷（按上面的关卡单刷）",
+                    "pipeline_override": {}
+                },
+                {
+                    "name": "连刷 第1–30关",
+                    "label": "连刷 第1–30关",
+                    "pipeline_override": {
+                        "迷踪盘.完成": {
+                            "next": [
+                                "迷踪盘.下一关"
+                            ],
+                            "on_error": [
+                                "迷踪盘.下一关"
+                            ]
+                        },
+                        "迷踪盘.求解": {
+                            "on_error": [
+                                "迷踪盘.下一关"
+                            ]
+                        },
+                        "迷踪盘.下一关": {
+                            "next": [
+                                "迷踪盘"
+                            ]
+                        },
+                        "迷踪盘.选关": {
+                            "action": {
+                                "type": "Custom",
+                                "param": {
+                                    "custom_action": "迷踪盘选关",
+                                    "custom_action_param": {
+                                        "level": 0,
+                                        "levels": [
+                                            1,
+                                            2,
+                                            3,
+                                            4,
+                                            5,
+                                            6,
+                                            7,
+                                            8,
+                                            9,
+                                            10,
+                                            11,
+                                            12,
+                                            13,
+                                            14,
+                                            15,
+                                            16,
+                                            17,
+                                            18,
+                                            19,
+                                            20,
+                                            21,
+                                            22,
+                                            23,
+                                            24,
+                                            25,
+                                            26,
+                                            27,
+                                            28,
+                                            29,
+                                            30
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "连刷 第1–15关",
+                    "label": "连刷 第1–15关",
+                    "pipeline_override": {
+                        "迷踪盘.完成": {
+                            "next": [
+                                "迷踪盘.下一关"
+                            ],
+                            "on_error": [
+                                "迷踪盘.下一关"
+                            ]
+                        },
+                        "迷踪盘.求解": {
+                            "on_error": [
+                                "迷踪盘.下一关"
+                            ]
+                        },
+                        "迷踪盘.下一关": {
+                            "next": [
+                                "迷踪盘"
+                            ]
+                        },
+                        "迷踪盘.选关": {
+                            "action": {
+                                "type": "Custom",
+                                "param": {
+                                    "custom_action": "迷踪盘选关",
+                                    "custom_action_param": {
+                                        "level": 0,
+                                        "levels": [
+                                            1,
+                                            2,
+                                            3,
+                                            4,
+                                            5,
+                                            6,
+                                            7,
+                                            8,
+                                            9,
+                                            10,
+                                            11,
+                                            12,
+                                            13,
+                                            14,
+                                            15
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "连刷 第16–30关",
+                    "label": "连刷 第16–30关",
+                    "pipeline_override": {
+                        "迷踪盘.完成": {
+                            "next": [
+                                "迷踪盘.下一关"
+                            ],
+                            "on_error": [
+                                "迷踪盘.下一关"
+                            ]
+                        },
+                        "迷踪盘.求解": {
+                            "on_error": [
+                                "迷踪盘.下一关"
+                            ]
+                        },
+                        "迷踪盘.下一关": {
+                            "next": [
+                                "迷踪盘"
+                            ]
+                        },
+                        "迷踪盘.选关": {
+                            "action": {
+                                "type": "Custom",
+                                "param": {
+                                    "custom_action": "迷踪盘选关",
+                                    "custom_action_param": {
+                                        "level": 0,
+                                        "levels": [
+                                            16,
+                                            17,
+                                            18,
+                                            19,
+                                            20,
+                                            21,
+                                            22,
+                                            23,
+                                            24,
+                                            25,
+                                            26,
+                                            27,
+                                            28,
+                                            29,
+                                            30
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            ]
         }
     },
     "preset": [
@@ -934,6 +2166,20 @@
                         "刷取轮数": "5 轮",
                         "购买活力值次数": "买 1 次",
                         "活力值用尽怎么办": "直接停止"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "迷踪盘：第1关",
+            "label": "迷踪盘：第1关",
+            "description": "回大厅 → 派遣公司 → 茶室 → 迷踪盘 → 第1关 → 自动转动求解 → 完成后回大厅。主线首次通关有奖励。",
+            "task": [
+                {
+                    "name": "迷踪盘",
+                    "enabled": true,
+                    "option": {
+                        "迷踪盘关卡": "第1关"
                     }
                 }
             ]
