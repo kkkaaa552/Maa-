@@ -66,9 +66,70 @@ _t_*.png
 _tpl_*.png
 
 # ---- 开发笔记（个人工作记录，与发布无关）----
+AGENTS.md
 HANDOFF.md
 HANDOFF-*.md
 00-待做清单-*.md
+点位表-*.md
+_archive-*/
+*.bak2-*
+
+# ---- 开发期探针与手工工具（不进仓库，也不进发布包）----
+# tools/ 整个目录会被 build.py 打进发布包（build.py:507），这些脚本既不在
+# 运行期 import 可达集（唯一例外 mtboard.py 必须留），也不在 CI 构建链上，
+# 摆进仓库只会让使用者以为要读它们。
+/tools/_mt_*.py
+/tools/burst.py
+/tools/mt_drop_orphans.py
+/tools/mt_patch_board.py
+/tools/mt_patch_entry.py
+/tools/mt_tpl_board.py
+/tools/mt_verify_tpl.py
+/tools/mtbi.py
+/tools/mtcal.py
+/tools/mtcheck.py
+/tools/mtchk.py
+/tools/mtdump.py
+/tools/mtexp.py
+/tools/mthex.py
+/tools/mtlog.py
+/tools/mtmodel.py
+/tools/mtobs.py
+/tools/mtobs2.py
+/tools/mtprobe.py
+/tools/mtret.py
+/tools/mtrun.py
+/tools/mtrun2.py
+/tools/mtscan19.py
+/tools/mtsmall.py
+/tools/tap.py
+/tools/wh_dhash.py
+/tools/wh_digits_check.py
+/tools/wh_panel_scan.py
+/tools/wh_sheet.py
+/tools/wh_tolabel.py
+/tools/win_ocr.ps1
+
+# ---- 开发期标注与验收产物 ----
+# data/digits/_report.txt 是 build_digits.py 的输出报告；
+# data/warehouse/ 下的 sheet_*.png、tolabel_*.png、ticket.json 是
+# wh_sheet.py / wh_tolabel.py --out 手工生成的对照图，代码里 0 引用。
+data/digits/_report.txt
+data/warehouse/sheet_*.png
+data/warehouse/tolabel_*.png
+data/warehouse/ticket.json
+
+# 库存快照是「上一次扫描结果」（本机跑完才有），build.py:41 明确不打包。
+# 仓库里留一份只会让它和别人的实际库存对不上。
+data/warehouse/物料.json
+data/warehouse/票券.json
+data/warehouse/资源.json
+
+# ---- 编辑器与本地重构残留 ----
+.vscode/
+.schema/
+agent/*.py.new
+config/config/
 
 # ---- 编辑器 ----
 .vs/
@@ -100,4 +161,3 @@ _build*.log
 
 # ---- 保留 ----
 !.github/
-!.vscode/
